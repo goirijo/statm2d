@@ -1,0 +1,69 @@
+import numpy as np
+import math
+
+def rotmat(degangle):
+    '''Return rotation matrix of given angle in degrees'''
+    radangle=np.deg2rad(degangle)
+    xx=math.cos(radangle)
+    xy=-math.sin(radangle)
+    yx=math.sin(radangle)
+    yy=math.cos(radangle)
+
+    mat=np.matrix([[xx,xy],[yx,yy]])
+    mat=mat+0
+    return mat
+
+def refmat(degangle):
+    '''Return reflection matrix of given angle in degrees'''
+    radangle=np.deg2rad(degangle)
+    xx=math.cos(2*radangle)
+    xy=math.sin(2*radangle)
+    yx=math.sin(2*radangle)
+    yy=-math.cos(2*radangle)
+
+    mat=np.matrix([[xx,xy],[yx,yy]])
+    mat=mat+0
+    return mat
+
+def matfind(mattuplist,mat):
+    '''Find a matrix in a list of tuples of form (matrix, string)'''
+    for compare in mattuplist:
+        compmat=compare[0]
+        if np.allclose(mat,compmat):
+            return compare[1]
+    
+    return "X"
+
+#Squash small values to zero when printing
+np.set_printoptions(suppress=True)
+
+#For a triangular lattice, the rotation matrices are
+I=rotmat(0)
+R60=rotmat(60)
+R120=rotmat(120)
+R180=rotmat(180)
+R240=rotmat(240)
+R300=rotmat(300)
+
+#and the mirror matrices are
+M0=refmat(0)
+M30=refmat(30)
+M60=refmat(60)
+M90=refmat(90)
+M120=refmat(120)
+M150=refmat(150)
+
+mattuplist=[(I,"I"), (R60,"R60"), (R120,"R120"), (R180,"R180"), (R240,"R240"), (R300,"R300"), (M0,"M0"), (M30,"M30"), (M60,"M60"), (M90,"M90"), (M120,"M120"), (M150,"M150")]
+
+tablestring=""
+
+for pair0 in mattuplist:
+    for pair1 in mattuplist:
+        mat0=pair0[0]
+        mat1=pair1[0]
+
+        prodmat=mat0.dot(mat1)
+        tablestring+=matfind(mattuplist,prodmat)+"    "
+    tablestring+="\n"
+
+print tablestring
