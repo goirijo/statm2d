@@ -105,8 +105,25 @@ def operation_type(mat):
 
     return typetup
 
+def is_closed(symgroup):
+    """Determine if the provided list of symmetry operations
+    forms a closed group or not by multiplying them all
+    by each other and seeing if a new operation appears or not.
 
-class SymOp(object):
+    :symgroup: list of Op
+    :returns: bool
+
+    """
+    
+    for op1 in symgroup:
+        for op2 in symgroup:
+            testop=op1*op2
+            if testop not in symgroup:
+                return False
+
+    return True
+
+class Op(object):
 
     """A symmetry operation (I, R or M) with a translation vector and
     a label to go with it. Everything is Cartesian."""
@@ -146,7 +163,28 @@ class SymOp(object):
         return self._rank<other._rank
 
     def __repr__(self):
-        return self.name+" [%s,%s]" % (self.shift[0,0],self.shift[1,0])
+        representation="name: "+self.name
+        representation+="\n"+self.matrix.__repr__()
+        representation+="\n"+self.shift.__repr__()
+        return representation
 
     def __str__(self):
-        return self.name
+        representation=self.name
+        representation+="\n"+self.matrix.__str__()
+        representation+="\nshift: [%s,%s]" % (self.shift[0,0],self.shift[1,0])
+        return representation
+
+    def __mul__(self, other):
+        """Combine two operations into one.
+
+        S*v=S.mat*v+S.tau
+
+        S1*S2=S1.mat*S2.mat+S1.mat*S2.tau+S1.tau
+
+        :other: RHS symmetry operation
+        :returns: Op
+
+        """
+        newmat=self.matrix.dot(other.matrix)
+        newshift=self.matrix.dot(other.shift)+self.shift
+        return Op(newmat,newshift)
