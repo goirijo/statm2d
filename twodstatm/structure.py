@@ -1,7 +1,42 @@
 import symmetry as sym
 import numpy as np
+import math
 import matplotlib.patches as patches
 import matplotlib.lines as lines
+
+def bring_within(coordinate,lattice):
+    """Translate the given coordinate by integer
+    amounts of lattice vectors so that the
+    coordinate lands within the first image
+    of the unit cell.
+
+    :coordinate: 2x1 matrix (Cartesian coordinates)
+    :lattice: 2x2 matrix with a and b vectors as columns
+    :returns: 2x1 matrix
+
+    """
+    #turn the coordinate into fractional
+    fraccoord=np.linalg.inv(lattice).dot(coordinate)
+
+    #How many integer translations the coordinate is over by
+    aexcess=math.floor(fraccoord[0,0])
+    bexcess=math.floor(fraccoord[1,0])
+
+    fracwithin=fraccoord-np.matrix([[aexcess],[bexcess]])
+
+    #square off rounding errors
+    closeindx=np.isclose(fracwithin,1)
+    fracwithin[closeindx]=0.0
+    closeindx=np.isclose(fracwithin,-1)
+    fracwithin[closeindx]=0.0
+    closeindx=np.isclose(fracwithin,0)
+    fracwithin[closeindx]=0.0
+
+
+    #Now fracwithin is just 0.xxxxx 0.yyyyyy
+    #Transform back into cartesian
+    return lattice.dot(fracwithin)
+
 
 class Site(object):
 
@@ -11,7 +46,7 @@ class Site(object):
     identifies what type of atom is on the site.
     Expects fractional coordinates as default"""
 
-    def __init__(self,coord,specie,lattice=[],fracmode=True):
+    def __init__(self,coord,specie,lattice=[],fracmode=False):
         """Given a fractional or cartesian coordinate,
         construct a cartesian or fractional coordinate
         and save both along with the species.
@@ -43,6 +78,16 @@ class Site(object):
         """
         newcoord=operation.matrix.dot(self._coord)+operation.shift
         return Site(newcoord,self._specie,fracmode=False)
+
+    def bring_within(self, lattice):
+        """Translate the site into the first image
+        of the provided lattice
+
+        :lattice: 2x2 matrix with a and b vectors as columns
+        :returns: Site
+
+        """
+        return Site(bring_within(self._coord,lattice),self._specie)
         
 
     def __str__(self):
@@ -50,6 +95,13 @@ class Site(object):
         representation=self._specie+"    %s    " % (coordstring)
         return representation
 
+    def __eq__(self,other):
+        if self._specie!=other._specie:
+            return False
+        elif not np.allclose(self._coord,other._coord):
+            return False
+        else:
+            return True
         
 
 class Crystal(object):
@@ -57,7 +109,7 @@ class Crystal(object):
     """A 2x2 lattice with column vectors and a
     list of basis sites"""
 
-    def __init__(self,a,b,atomlist,fracmode=True):
+    def __init__(self,a,b,atomlist,fracmode):
         """Set values for the lattice and the basis list
 
         :a: 2x1 lattice vector
@@ -70,7 +122,7 @@ class Crystal(object):
         self._basis=[]
 
         for atom in atomlist:
-            self._basis.append(atom)
+            self._basis.append(atom.bring_within(self._lattice))
         
 
     def a(self):
@@ -125,10 +177,44 @@ class Crystal(object):
         :returns: list of Op
 
         """
+        fgroup=[]
+
         #First determine the point group
         pg=self.point_group(maxsearch)
 
-        return
+        #the operations of the factor group will be a subset of
+        #the point group with or without translation. Try
+        #every operation in the point group
+        for op in pg:
+            #get a new set of basis coordinates
+            transbasis=self.transformed_basis(op)
+
+            #try mapping every transformed atom back onto an original basis atom
+            for atom in self._basis:
+                for transatom in transbasis:
+                    #if you're trying to map the wrong type of atom don't even bother with the iteration
+                    if atom._specie!=transatom._specie:
+                        continue
+
+                    #calculate the shift and bring it within a unit cell
+                    tshift=bring_within(atom._coord-transatom._coord,self._lattice)
+
+                    #apply the shift to every atom and see if the whole basis maps
+                    goodmap=True
+                    for mapped in transbasis:
+                        backmap=Site(mapped._coord+tshift,mapped._specie)
+                        backmap=backmap.bring_within(self._lattice)
+                        if backmap not in self._basis:
+                            goodmap=False
+
+                    #If all the atoms mapped then the shift is good and we save the operation to the group
+                    if goodmap:
+                        factorop=sym.Op(op.matrix,tshift)
+                        #Save the operation if it's not there already
+                        if factorop not in fgroup:
+                            fgroup.append(factorop)
+
+        return fgroup
 
     def plot(self, ax, arepeat, brepeat,colorshift=0):
         """Visualize structure by scattering
