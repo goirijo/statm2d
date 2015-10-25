@@ -1,4 +1,4 @@
-import twodstatm as sm2d
+import statm2d as sm2d
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -48,7 +48,9 @@ print honeycomb
 for i,op in enumerate(pgroup):
     fig=plt.figure(i)
     ax=fig.add_subplot('111')
-    ax.set_title(op.name)
+    ax.set_title(r"\bf{"+op.name+"}")
+    ax.set_xlabel(r"\bf{x}")
+    ax.set_ylabel(r"\bf{y}")
     honeycomb.plot(ax,(-1,4),(-1,4))
     transbasis=honeycomb.transformed_basis(op)
     honeycomb2=sm2d.Crystal(a,b,transbasis,fracmode=False)
