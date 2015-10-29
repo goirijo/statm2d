@@ -123,6 +123,26 @@ def is_closed(symgroup):
 
     return True
 
+def matrix_reynolds(matrix,symgroup):
+    """Apply the Reynolds operator to the given matrix
+    by adding the result of applying every operation 
+    of the given group
+
+    Add every S.T*M*S
+
+    :matrix: 2x2 matrix
+    :symgroup: list of Op
+    :returns: 2x2 matrix
+
+    """
+    
+    operated=np.zeros(matrix.shape)
+    for op in symgroup:
+        opmat=op.matrix
+        operated+=(opmat.T.dot(matrix)).dot(opmat)
+
+    return operated
+
 class Op(object):
 
     """A symmetry operation (I, R or M) with a translation vector and
@@ -169,6 +189,7 @@ class Op(object):
         return representation
 
     def __str__(self):
+        np.set_printoptions(suppress=True)
         representation=self.name
         representation+="\n"+self.matrix.__str__()
         representation+="\nshift: [%s,%s]" % (self.shift[0,0],self.shift[1,0])
@@ -188,3 +209,25 @@ class Op(object):
         newmat=self.matrix.dot(other.matrix)
         newshift=self.matrix.dot(other.shift)+self.shift
         return Op(newmat,newshift)
+
+    def tex_formula(self):
+        """Return a string that prints the name of the
+        operation, the matrix and the shift vector in
+        LaTeX format.
+
+        :returns: string
+
+        """
+        texstring=self.name+"\n\\begin{equation}\n    M=\n    "
+        texstring+="\\begin{pmatrix}\n        "
+        texstring+=str(self.matrix[0,0])+"&"+str(self.matrix[0,1])+"\\\\\n        "
+        texstring+=str(self.matrix[1,0])+"&"+str(self.matrix[1,1])+"\n    "
+        texstring+="\\end{pmatrix}\n    "
+        texstring+=",\\vec{\\tau}=\n    "
+        texstring+="\\begin{pmatrix}\n        "
+        texstring+=str(self.shift[0,0])+"\\\\\n        "
+        texstring+=str(self.shift[1,0])+"\n    "
+        texstring+="\\end{pmatrix}\n    "
+        texstring+="\\label{"+self.name+"}\n\\end{equation}"
+
+        return texstring

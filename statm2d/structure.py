@@ -40,11 +40,8 @@ def bring_within(coordinate,lattice):
 
 class Site(object):
 
-    """Contains a fractional and a cartesian
-    coordinate, which requires initialization
-    with a lattice. There is also a string that
-    identifies what type of atom is on the site.
-    Expects fractional coordinates as default"""
+    """Cartesian coordinate plus a string to
+    determine the type of atom"""
 
     def __init__(self,coord,specie,lattice=[],fracmode=False):
         """Given a fractional or cartesian coordinate,
@@ -103,6 +100,24 @@ class Site(object):
         else:
             return True
         
+def site_delta(site0,site1):
+    """Subtract the coordinates of two sites and
+    return result as a coordinate and a bool, which
+    determines whether the sites are of the same type
+    or not
+
+    :site0: Site
+    :site1: Site
+    :returns: (2x1 vector, bool)
+
+    """
+    delta=site1._coord-site0._coord
+    samespecie=False
+    if site0._specie==site1._specie:
+        samespecie=True
+
+    return (delta,samespecie)
+
 
 class Crystal(object):
 

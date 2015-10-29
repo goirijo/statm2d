@@ -31,3 +31,54 @@ def vec_angle(vec1, vec2):
     angle=math.degrees(radangle)
     
     return angle
+
+def independent_indices(matlist):
+    """Find the elements in the list that are
+    linearly independent. This function is
+    mainly for finding the linearly independent
+    tensor basis elements.
+    
+    First unroll each matrix in the list as a four element vector
+    L=[mxx,mxy,myx,myy]
+
+    Put all (presumably 4) vectors in a matrix
+    M=[L1,L2,L3,L4]
+
+    If you take the QR decomposition of M, the columns of R
+    with non-zero value along the diagonal correspond to
+    linearly independent columns of L
+
+    :matlist: list of 2x2 matrix
+    :returns: tuple of int
+
+    """
+    vectorized=[]
+    for mat in matlist:
+        vectorized.append(mat.ravel())
+
+    vectorized=np.array(vectorized)
+    vectorized=np.squeeze(vectorized)
+
+    Q,R=np.linalg.qr(vectorized.T)
+    dependent=np.isclose(R.diagonal(),0)
+    independent=np.invert(dependent)
+
+    return np.where(independent)[0]
+
+def tensor_basis(dim=2):
+    """Generate dxd matrices with all zeros except
+    for one element, such that the sum of all the
+    matrices is a matrix full of ones.
+
+    :dim: int
+    :returns: list of dim x dim matrix
+
+    """
+    basis=[]
+    for i in range(dim):
+        for j in range(dim):
+            basismat=np.zeros((dim,dim))
+            basismat[i,j]=1
+            basis.append(basismat)
+
+    return basis

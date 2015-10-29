@@ -3,11 +3,20 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
+
 #define triangular lattice
 a=np.matrix([[1],[0]])
 b=np.matrix([[-0.5],[math.sqrt(3)/2]])
 
-triangluar=sm2d.Crystal(a,b,[],fracmode=False)
+#Define basis for honeycomb structure
+dumbshift=np.matrix([1.2,0.2]).T
+coord1=np.matrix([0,0]).T
+coord2=(2*a+b)/3
+#coord1=(2*b+a)/3
+site1=sm2d.structure.Site(coord1,"A")
+site2=sm2d.structure.Site(coord2,"A")
+
+triangluar=sm2d.Crystal(a,b,[site1],fracmode=False)
 pgroup=triangluar.point_group()
 
 print "The lattice is defined as"
@@ -33,28 +42,28 @@ if sm2d.symmetry.is_closed(pgroup):
     print "The calculated operations form a closed group"
 
 
-#Define basis for honeycomb structure
-dumbshift=np.matrix([1.2,0.2]).T
-coord1=np.matrix([0,0]).T
-coord2=(2*a+b)/3
-#coord1=(2*b+a)/3
-site1=sm2d.structure.Site(coord1,"A")
-site2=sm2d.structure.Site(coord2,"A")
 
 honeycomb=sm2d.Crystal(a,b,[site1, site2],False)
 print honeycomb
 
+fig=plt.figure()
+ax=fig.add_subplot('111')
+ax.set_title(r"\bf{Honeycomb structure}")
+ax.set_xlabel(r"\bf{x}")
+ax.set_ylabel(r"\bf{y}")
+honeycomb.plot(ax,(-1,4),(-1,4))
 
-for i,op in enumerate(pgroup):
-    fig=plt.figure(i)
-    ax=fig.add_subplot('111')
-    ax.set_title(r"\bf{"+op.name+"}")
-    ax.set_xlabel(r"\bf{x}")
-    ax.set_ylabel(r"\bf{y}")
-    honeycomb.plot(ax,(-1,4),(-1,4))
-    transbasis=honeycomb.transformed_basis(op)
-    honeycomb2=sm2d.Crystal(a,b,transbasis,fracmode=False)
-    honeycomb2.plot(ax,(-4,1),(-4,1),2)
+
+#for i,op in enumerate(pgroup):
+#    fig=plt.figure(i)
+#    ax=fig.add_subplot('111')
+#    ax.set_title(r"\bf{"+op.name+"}")
+#    ax.set_xlabel(r"\bf{x}")
+#    ax.set_ylabel(r"\bf{y}")
+#    honeycomb.plot(ax,(-1,4),(-1,4))
+#    transbasis=honeycomb.transformed_basis(op)
+#    honeycomb2=sm2d.Crystal(a,b,transbasis,fracmode=False)
+#    honeycomb2.plot(ax,(-4,1),(-4,1),2)
 
 fgroup=honeycomb.factor_group()
 
