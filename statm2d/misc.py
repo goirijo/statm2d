@@ -82,3 +82,25 @@ def tensor_basis(dim=2):
             basis.append(basismat)
 
     return basis
+
+def matrix_tex(mat,indent,expand=4):
+    """Generate string for matrix to render in LaTeX.
+
+    begin{pmatrix}
+        a&b
+        c&d
+    end{pmatrix}
+
+    :mat: 2x2 matrix
+    :indent: int, indentation level (exoand spaces per value)
+    :expand: int, how many spaces per indentation
+    :returns: string
+
+    """
+    texstring=((indent)*expand)*" "
+    texstring+="\\begin{pmatrix}\n"+((indent+1)*expand)*" "
+    texstring+=str(mat[0,0])+"&"+str(mat[0,1])+"\\\\\n"+((indent+1)*expand)*" "
+    texstring+=str(mat[1,0])+"&"+str(mat[1,1])+"\n"+(indent*expand)*" "
+    texstring+="\\end{pmatrix}\n"+(indent*expand)*" "
+
+    return texstring

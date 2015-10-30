@@ -21,14 +21,18 @@ def cluster_subgroups(site0,site1,symgroup):
     subgroupswitch=[]
     clusterdelta,basismap=structure.site_delta(site0,site1)
     for op in symgroup:
-        transdelta,transmap=structure.site_delta(site0.apply_symmetry(op),site1.apply_symmetry(op))
+        transsite0=site0.apply_symmetry(op)
+        transsite1=site1.apply_symmetry(op)
+        transdelta,transmap=structure.site_delta(transsite0,transsite1)
 
         #if the deltas remain the same, then the sites map onto themselves by translation
         if np.allclose(clusterdelta,transdelta):
+            op.shift=site0._coord-transsite0._coord
             subgroupmap.append(op)
 
         #if the deltas have opposite signs, the sites map by translation, but they switched places
         elif np.allclose(-clusterdelta,transdelta) and basismap:
+            op.shift=site1._coord-transsite0._coord
             subgroupswitch.append(op)
 
         else:

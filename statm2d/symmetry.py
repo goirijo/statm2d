@@ -218,11 +218,8 @@ class Op(object):
         :returns: string
 
         """
-        texstring=self.name+"\n\\begin{equation}\n    M=\n    "
-        texstring+="\\begin{pmatrix}\n        "
-        texstring+=str(self.matrix[0,0])+"&"+str(self.matrix[0,1])+"\\\\\n        "
-        texstring+=str(self.matrix[1,0])+"&"+str(self.matrix[1,1])+"\n    "
-        texstring+="\\end{pmatrix}\n    "
+        texstring=self.name+"\n\\begin{equation}\n    S=\n"
+        texstring+=matrix_tex(self.matrix,1)
         texstring+=",\\vec{\\tau}=\n    "
         texstring+="\\begin{pmatrix}\n        "
         texstring+=str(self.shift[0,0])+"\\\\\n        "
