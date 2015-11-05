@@ -3,6 +3,34 @@ import numpy as np
 import symmetry as sym
 import structure
 
+def is_equivalent_cluster(site0,site1,comp0,comp1):
+    """Check if two pairs of sites are equivalent by
+    translation, and if the sites are swapped.
+
+    :site0: Site
+    :site1: Site
+    :comp0: Site
+    :comp1: Site
+    :returns: bool,bool
+
+    """
+    sitedelta,sitemap=structure.site_delta(site0,site1)
+    compdelta,compmap=structure.site_delta(comp0,comp1)
+
+    goodmap=False
+    mapswitch=False
+    
+    if np.allclose(sitedelta,compdelta):
+        goodmap=True
+
+    #if the deltas have opposite signs, the sites map by translation, but they switched places
+    elif np.allclose(-sitedelta,compdelta) and sitemap and compmap:
+        goodmap=True
+        mapswitch=True
+
+    return goodmap,mapswitch
+    
+
 def map_cluster(site0,site1,op):
     """Checks if the symmetry operation
     maps a cluster onto itself (with a translation).
@@ -19,16 +47,15 @@ def map_cluster(site0,site1,op):
     transdelta,transmap=structure.site_delta(transsite0,transsite1)
     clusterdelta,basismap=structure.site_delta(site0,site1)
 
-    goodmap=False
-    mapswitch=False
+    goodmap,mapswitch=is_equivalent_cluster(site0,site1,transsite0,transsite1)
     
-    if np.allclose(clusterdelta,transdelta):
-        goodmap=True
+    #if np.allclose(clusterdelta,transdelta):
+    #    goodmap=True
 
-    #if the deltas have opposite signs, the sites map by translation, but they switched places
-    elif np.allclose(-clusterdelta,transdelta) and basismap:
-        goodmap=True
-        mapswitch=True
+    ##if the deltas have opposite signs, the sites map by translation, but they switched places
+    #elif np.allclose(-clusterdelta,transdelta) and basismap:
+    #    goodmap=True
+    #    mapswitch=True
 
     return transsite0,transsite1,goodmap,mapswitch
 
@@ -108,7 +135,19 @@ def equivalent_clusters(site0,site1,symgroup):
     mapsym=[]
 
     for op in symgroup:
-        transsite0=site0.apply_symmetry(op)
-        transsite1=site1.apply_symmetry(op)
-        transdelta,transmap=structure.site_delta(transsite0,transsite1)
+        transsite0,transsite1,goodmap,mapswitch=map_cluster(site0,site1,op)
+
+        newclust=True
+        for eq0,eq1 in zip(equivsite0,equivsite1):
+            goodmap,mapswitch=is_equivalent_cluster(transsite0,transsite1,eq0,eq1)
+            if goodmap:
+                newclust=False
+                break
+
+        if newclust:
+            equivsite0.append(transsite0)
+            equivsite1.append(transsite1)
+            mapsym.append(op)
+
+    return equivsite0,equivsite1,mapsym
 

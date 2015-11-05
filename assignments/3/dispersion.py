@@ -24,75 +24,12 @@ print pair0
 print pair1
 print ""
 
-fig=plt.figure()
-ax=fig.add_subplot('111')
-ax.set_title(r"\bf{Triangular lattice pair cluster}")
-ax.set_xlabel(r"\bf{x}")
-ax.set_ylabel(r"\bf{y}")
-triangluar.plot(ax,(-1,4),(-1,4))
-ax.scatter(pair0._coord[0],pair0._coord[1],color="r",s=70)
-ax.scatter(pair1._coord[0],pair1._coord[1],color="r",s=70)
-plt.show()
+equiv0,equiv1,syms=sm2d.phonon.equivalent_clusters(pair0,pair1,pgroup)
 
-submap,subswitch=sm2d.phonon.cluster_subgroups(pair0,pair1,pgroup)
-print "The following operations mapped the cluster sites onto themselves:"
-for op in submap:
-    print op
-    #print op.tex_formula()
-    print ""
-print "The following operations mapped the cluster sites onto each other:"
-for op in subswitch:
+print "The unique equivalent clusters are"
+for eq0,eq1,op in zip(equiv0,equiv1,syms):
+    print eq0
+    print eq1
     print op
     print ""
 
-tensorbasis=sm2d.phonon.force_tensor_basis_for_pair(pair0,pair1,pgroup)
-
-print "The invariant tensor basis is:"
-for basis in tensorbasis:
-    print basis
-    print ""
-    #print "\\begin{equation}"
-    #print "    \\Lambda="
-    #print sm2d.misc.matrix_tex(basis,1)
-    #print "    \\label{symbasis}"
-    #print "\\end{equation}"
-    #print ""
-
-print "The linearly independent basis are "+str(sm2d.misc.independent_indices(tensorbasis))
-
-pair0=site1
-pair1=site2
-
-print "The selected pair in the honeycomb structure is"
-print pair0
-print pair1
-print ""
-
-fig=plt.figure()
-ax=fig.add_subplot('111')
-ax.set_title(r"\bf{Honeycomb pair cluster}")
-ax.set_xlabel(r"\bf{x}")
-ax.set_ylabel(r"\bf{y}")
-honeycomb.plot(ax,(-1,4),(-1,4))
-ax.scatter(pair0._coord[0],pair0._coord[1],color="r",s=70)
-ax.scatter(pair1._coord[0],pair1._coord[1],color="r",s=70)
-plt.show()
-
-submap,subswitch=sm2d.phonon.cluster_subgroups(pair0,pair1,pgroup)
-print "The following operations mapped the cluster sites onto themselves:"
-for op in submap:
-    print op
-    print ""
-print "The following operations mapped the cluster sites onto each other:"
-for op in subswitch:
-    print op
-    print ""
-
-tensorbasis=sm2d.phonon.force_tensor_basis_for_pair(pair0,pair1,pgroup)
-
-print "The invariant tensor basis is:"
-for basis in tensorbasis:
-    print basis
-    print ""
-
-print "The linearly independent basis are "+str(sm2d.misc.independent_indices(tensorbasis))
