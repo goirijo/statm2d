@@ -210,6 +210,19 @@ class Op(object):
         newshift=self.matrix.dot(other.shift)+self.shift
         return Op(newmat,newshift)
 
+    def apply(self, matrix):
+        """Apply the symmetry matrix to the given
+        matrix via
+
+        S.T*M*S
+
+        :matrix: 2x2 matrix
+        :returns: 2x2 matrix
+
+        """
+        operated=(self.matrix.T.dot(matrix)).dot(self.matrix)
+        return operated
+
     def tex_formula(self):
         """Return a string that prints the name of the
         operation, the matrix and the shift vector in

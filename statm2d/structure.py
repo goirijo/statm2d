@@ -37,6 +37,16 @@ def bring_within(coordinate,lattice):
     #Transform back into cartesian
     return lattice.dot(fracwithin)
 
+def coord_split(coordinate,lattice):
+    """Split the coordinate into integer a vectors,
+    b vectors, x shift and y shift.
+
+    :coordinate: 2x1 matrix (Cartesian)
+    :lattice: 2x2 matrix with a and b vectors as columns
+    :returns: int,int,float,float
+
+    """
+    pass
 
 class Site(object):
 
@@ -117,6 +127,23 @@ def site_delta(site0,site1):
         samespecie=True
 
     return (delta,samespecie)
+
+def bring_cluster_within(site0,site1,lattice):
+    """Bring the first site within the lattice
+    and then translate the other one by the same
+    amount
+
+    :site0: Site
+    :site1: Site
+    :lattice: 2x2 matrix with a and b vectors as columns
+    :returns: Site,Site
+
+    """
+    within0=site0.bring_within(lattice)
+    withinshift,_=site_delta(site0,within0)
+
+    within1=Site(site1._coord+withinshift,site1._specie)
+    return within0,within1
 
 
 class Crystal(object):
