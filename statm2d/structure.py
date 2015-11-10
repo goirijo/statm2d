@@ -37,6 +37,37 @@ def bring_within(coordinate,lattice):
     #Transform back into cartesian
     return lattice.dot(fracwithin)
 
+def _perpendicular_vector(a):
+    """Return a vector that is perpendicular to
+    the given one.
+
+    :a: 2x1 lattice vector
+    :returns: 2x1 vector
+
+    """
+    astar=np.matrix([[a[0,0]],-a[1,0]])
+    return astar
+
+def reciprocal_lattice(a,b):
+    """Construct a reciprocal lattice from the given
+    lattice vectors
+
+    :a: 2x1 lattice vector
+    :b: 2x1 lattice vector
+    :returns: vector,vector
+
+    """
+    #reciprocal a is perpendicular to b, and of length 1/a
+    astar=_perpendicular_vector(a)
+    astar=np.linalg.norm(astar)
+    astar=astar*1/np.linalg.norm(b)
+    #reciprocal b is perpendicular to a, and of length 1/b
+    bstar=_perpendicular_vector(b)
+    bstar=np.linalg.norm(bstar)
+    bstar=bstar*1/np.linalg.norm(a)
+
+    return astar,bstar
+
 
 class Site(object):
 
