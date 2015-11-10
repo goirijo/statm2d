@@ -1,8 +1,10 @@
 import symmetry as sym
+from misc import norm
 import numpy as np
 import math
 import matplotlib.patches as patches
 import matplotlib.lines as lines
+from scipy.spatial import Voronoi
 
 def bring_within(coordinate,lattice):
     """Translate the given coordinate by integer
@@ -45,7 +47,7 @@ def _perpendicular_vector(a):
     :returns: 2x1 vector
 
     """
-    astar=np.matrix([[a[0,0]],-a[1,0]])
+    astar=np.matrix([[-a[1,0]],[a[0,0]]])
     return astar
 
 def reciprocal_lattice(a,b):
@@ -59,15 +61,35 @@ def reciprocal_lattice(a,b):
     """
     #reciprocal a is perpendicular to b, and of length 1/a
     astar=_perpendicular_vector(a)
-    astar=np.linalg.norm(astar)
-    astar=astar*1/np.linalg.norm(b)
+    astar=astar*norm(astar)
+    astar=astar*1/norm(b)
     #reciprocal b is perpendicular to a, and of length 1/b
     bstar=_perpendicular_vector(b)
-    bstar=np.linalg.norm(bstar)
-    bstar=bstar*1/np.linalg.norm(a)
+    bstar=bstar*norm(bstar)
+    bstar=bstar*1/norm(a)
 
     return astar,bstar
 
+def grid_points(a,b,arepeat,brepeat):
+    """Make a list of lattice points within
+    the given range
+
+    :a: 2x1 lattice vector
+    :b: 2x1 lattice vector
+    :arepeat: (int,int)
+    :barepeat: (int,int)
+    :returns: list of ndarray
+
+    """
+    gridpoints=[]
+    for acount in np.arange(arepeat[0],arepeat[1]):
+        for bcount in np.arange(brepeat[0],brepeat[1]):
+            point=np.array((acount*a+bcount*b).T)
+            point=np.squeeze(point)
+            gridpoints.append(point)
+
+    return gridpoints
+    
 def coord_split(coordinate,lattice):
     """Split the coordinate into integer a vectors,
     b vectors, x shift and y shift.

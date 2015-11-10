@@ -104,3 +104,34 @@ def matrix_tex(mat,indent,expand=4):
     texstring+="\\end{pmatrix}\n"+(indent*expand)*" "
 
     return texstring
+
+def norm(v):
+    """Calculate the norm of a vector
+
+    :v: 2x1 vector
+    :returns: float
+
+    """
+    return np.sqrt((v.T*v)[0,0])
+
+def voronoi_plot(ax,vor):
+    for simplex in vor.ridge_vertices:
+        simplex = np.asarray(simplex)
+        if np.all(simplex >= 0):
+            ax.plot(vor.vertices[simplex,0], vor.vertices[simplex,1], 'k-')
+
+    #center = points.mean(axis=0)
+    #for pointidx, simplex in zip(vor.ridge_points, vor.ridge_vertices):
+    #    simplex = np.asarray(simplex)
+    #    if np.any(simplex < 0):
+    #        i = simplex[simplex >= 0][0] # finite end Voronoi vertex
+    #        t = points[pointidx[1]] - points[pointidx[0]] # tangent
+    #        t /= np.linalg.norm(t)
+    #        n = np.array([-t[1], t[0]]) # normal
+    #        midpoint = points[pointidx].mean(axis=0)
+    #        far_point = vor.vertices[i] + np.sign(np.dot(midpoint - center, n)) * n * 100
+    #        plt.plot([vor.vertices[i,0], far_point[0]], [vor.vertices[i,1], far_point[1]], 'k--')
+    #ax.plot(points[:,0], points[:,1], 'o')
+    #ax.plot(vor.vertices[:,0], vor.vertices[:,1], '*')
+
+    return ax

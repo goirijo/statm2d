@@ -2,6 +2,7 @@ import statm2d as sm2d
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from scipy.spatial import Voronoi, voronoi_plot_2d
 
 #define triangular lattice
 a=np.matrix([[1],[0]])
@@ -64,4 +65,25 @@ for eq0,eq1,op in zip(equiv0,equiv1,syms):
 
     print ""
 
+print "The real lattice is"
+print a
+print b
+print "The reciprocal lattice is"
+astar,bstar=sm2d.structure.reciprocal_lattice(a,b)
+print astar
+print bstar
 
+reciprocal=sm2d.Crystal(astar,bstar,[site1],fracmode=False)
+points=np.array(sm2d.structure.grid_points(astar,bstar,(-1,3),(-1,3)))
+vor=Voronoi(points)
+
+fig=plt.figure()
+ax=fig.add_subplot('111')
+ax.set_title(r"\bf{Reciprocal triangular}")
+ax.set_xlabel(r"\bf{x}")
+ax.set_ylabel(r"\bf{y}")
+reciprocal.plot(ax,(-1,4),(-1,4))
+
+sm2d.misc.voronoi_plot(ax,vor)
+
+plt.show()
