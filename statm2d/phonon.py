@@ -3,9 +3,9 @@ import numpy as np
 import symmetry as sym
 import structure
 
-def is_equivalent_cluster(site0,site1,comp0,comp1):
-    """Check if two pairs of sites are equivalent by
-    translation, and if the sites are swapped.
+def is_equivalent_cluster(site0,site1,comp0,comp1,lattice):
+    """Check if two pairs of sites are equivalent
+    and if the sites are swapped.
 
     :site0: Site
     :site1: Site
@@ -14,8 +14,11 @@ def is_equivalent_cluster(site0,site1,comp0,comp1):
     :returns: bool,bool
 
     """
-    sitedelta,sitemap=structure.site_delta(site0,site1)
-    compdelta,compmap=structure.site_delta(comp0,comp1)
+    swithin0,swithin1=structure.bring_cluster_within(site0,site1,lattice)
+    cwithin0,cwithin1=structure.bring_cluster_within(comp0,comp1,lattice)
+
+    sitedelta,sitemap=structure.site_delta(swithin0,swithin1)
+    compdelta,compmap=structure.site_delta(cwithin0,cwithin1)
 
     goodmap=False
     mapswitch=False
@@ -28,12 +31,11 @@ def is_equivalent_cluster(site0,site1,comp0,comp1):
         goodmap=True
         mapswitch=True
 
-    return goodmap,mapswitch
-    
+    return goodmap,mapswitch 
 
-def map_cluster(site0,site1,op):
+def map_cluster(site0,site1,op,lattice):
     """Checks if the symmetry operation
-    maps a cluster onto itself (with a translation).
+    maps a cluster onto itself (with a lattice translation).
     If it does, check if the sites switched places.
 
     :site0: Site
@@ -44,10 +46,8 @@ def map_cluster(site0,site1,op):
     """
     transsite0=site0.apply_symmetry(op)
     transsite1=site1.apply_symmetry(op)
-    transdelta,transmap=structure.site_delta(transsite0,transsite1)
-    clusterdelta,basismap=structure.site_delta(site0,site1)
 
-    goodmap,mapswitch=is_equivalent_cluster(site0,site1,transsite0,transsite1)
+    goodmap,mapswitch=is_equivalent_cluster(site0,site1,transsite0,transsite1,lattice)
     
     #if np.allclose(clusterdelta,transdelta):
     #    goodmap=True
@@ -59,10 +59,10 @@ def map_cluster(site0,site1,op):
 
     return transsite0,transsite1,goodmap,mapswitch
 
-def cluster_subgroups(site0,site1,symgroup):
+def cluster_subgroups(site0,site1,symgroup,lattice):
     """Determine the symmetry operations of the given
     symgroup that leave the pair cluster unchanged (with
-    a translation). Check if the translation to map
+    a lattice translation). Check if the translation to map
     back involves sites switching places.
     The first list of operations mapped the sites
     back onto themselves, while the second list
@@ -78,16 +78,14 @@ def cluster_subgroups(site0,site1,symgroup):
     subgroupswitch=[]
     
     for op in symgroup:
-        transsite0,transsite1,goodmap,mapswitch=map_cluster(site0,site1,op)
+        transsite0,transsite1,goodmap,mapswitch=map_cluster(site0,site1,op,lattice)
 
         #if the deltas remain the same, then the sites map onto themselves by translation
         if goodmap and not mapswitch:
-            op.shift=site0._coord-transsite0._coord
             subgroupmap.append(op)
 
         #if the deltas have opposite signs, the sites map by translation, but they switched places
         elif goodmap and mapswitch:
-            op.shift=site1._coord-transsite0._coord
             subgroupswitch.append(op)
 
         else:
@@ -96,7 +94,7 @@ def cluster_subgroups(site0,site1,symgroup):
     return (subgroupmap,subgroupswitch)
 
 
-def force_tensor_basis_for_pair(site0,site1,symgroup):
+def force_tensor_basis_for_pair(site0,site1,symgroup,lattice):
     """For a particular pair of sites, determine the symmetrized
     tensor basis. For each tensor basis apply the Reynolds operator
     with operations that map the cluster onto itself. In addition,
@@ -110,7 +108,7 @@ def force_tensor_basis_for_pair(site0,site1,symgroup):
 
     """
     basiscandidates=tensor_basis()
-    mapgroup,switchgroup=cluster_subgroups(site0,site1,symgroup)
+    mapgroup,switchgroup=cluster_subgroups(site0,site1,symgroup,lattice)
 
     for idx, candidate in enumerate(basiscandidates):
         symmetrized=sym.matrix_reynolds(candidate,mapgroup)
@@ -118,7 +116,7 @@ def force_tensor_basis_for_pair(site0,site1,symgroup):
         basiscandidates[idx]=(symmetrized+extrasymmetrized)/(len(mapgroup)+len(switchgroup))
     return basiscandidates
 
-def equivalent_clusters(site0,site1,symgroup):
+def equivalent_clusters(site0,site1,symgroup,lattice):
     """Apply the given group of symmetry operations onto
     the given pair cluster, and find new symmetrically
     equivalent clusters. Make list of resulting clusters
@@ -135,12 +133,13 @@ def equivalent_clusters(site0,site1,symgroup):
     mapsym=[]
 
     for op in symgroup:
-        transsite0,transsite1,goodmap,mapswitch=map_cluster(site0,site1,op)
+        transsite0,transsite1,goodmap,mapswitch=map_cluster(site0,site1,op,lattice)
 
         newclust=True
         for eq0,eq1 in zip(equivsite0,equivsite1):
-            goodmap,mapswitch=is_equivalent_cluster(transsite0,transsite1,eq0,eq1)
-            if goodmap:
+            goodmap,mapswitch=is_equivalent_cluster(transsite0,transsite1,eq0,eq1,lattice)
+            #if goodmap:    Maybe translational equivalent ones should be discarded?
+            if goodmap and not mapswitch:
                 newclust=False
                 break
 

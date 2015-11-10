@@ -34,7 +34,7 @@ ax.scatter(pair0._coord[0],pair0._coord[1],color="r",s=70)
 ax.scatter(pair1._coord[0],pair1._coord[1],color="r",s=70)
 plt.show()
 
-submap,subswitch=sm2d.phonon.cluster_subgroups(pair0,pair1,pgroup)
+submap,subswitch=sm2d.phonon.cluster_subgroups(pair0,pair1,pgroup,triangluar._lattice)
 print "The following operations mapped the cluster sites onto themselves:"
 for op in submap:
     print op
@@ -45,7 +45,7 @@ for op in subswitch:
     print op
     print ""
 
-tensorbasis=sm2d.phonon.force_tensor_basis_for_pair(pair0,pair1,pgroup)
+tensorbasis=sm2d.phonon.force_tensor_basis_for_pair(pair0,pair1,pgroup,triangluar._lattice)
 
 print "The invariant tensor basis is:"
 for basis in tensorbasis:
@@ -78,7 +78,7 @@ ax.scatter(pair0._coord[0],pair0._coord[1],color="r",s=70)
 ax.scatter(pair1._coord[0],pair1._coord[1],color="r",s=70)
 plt.show()
 
-submap,subswitch=sm2d.phonon.cluster_subgroups(pair0,pair1,pgroup)
+submap,subswitch=sm2d.phonon.cluster_subgroups(pair0,pair1,pgroup,honeycomb._lattice)
 print "The following operations mapped the cluster sites onto themselves:"
 for op in submap:
     print op
@@ -88,7 +88,7 @@ for op in subswitch:
     print op
     print ""
 
-tensorbasis=sm2d.phonon.force_tensor_basis_for_pair(pair0,pair1,pgroup)
+tensorbasis=sm2d.phonon.force_tensor_basis_for_pair(pair0,pair1,pgroup,honeycomb._lattice)
 
 print "The invariant tensor basis is:"
 for basis in tensorbasis:
