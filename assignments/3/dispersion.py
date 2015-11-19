@@ -18,6 +18,7 @@ pgroup=triangluar.point_group()
 
 pair0=sm2d.structure.Site(np.matrix([[0],[0]]),"A",triangluar._lattice,True)
 pair1=sm2d.structure.Site(np.matrix([[1],[0]]),"A",triangluar._lattice,True)
+pair3=sm2d.structure.Site(np.matrix([[2],[0]]),"A",triangluar._lattice,True)
 pivot=pair0
 #pair1=site2
 
@@ -27,6 +28,10 @@ print pair1
 print ""
 
 equiv0,equiv1,syms=sm2d.phonon.equivalent_clusters(pair0,pair1,pgroup,triangluar._lattice)
+
+print "debug"
+sm2d.phonon.dynamical_basis(pivot,[pair1],pgroup,triangluar._lattice)
+exit()
 
 print "The symmetrically equivalent clusters are"
 for eq0,eq1,op in zip(equiv0,equiv1,syms):
@@ -64,6 +69,20 @@ for eq0,eq1,op in zip(equiv0,equiv1,syms):
         print op.apply(basis)
 
     print ""
+
+print "Combining the tensor basis together with the force constants we get"
+for eq0,eq1,op in zip(equiv0,equiv1,syms):
+    print op.name
+    print eq0
+    print eq1
+
+    newbasis=[op.apply(basis) for basis in tensorbasis]
+
+    print sm2d.phonon.stack_tensor_basis(newbasis,coeffvals)
+
+    print ""
+
+exit()
 
 print "The real lattice is"
 print a

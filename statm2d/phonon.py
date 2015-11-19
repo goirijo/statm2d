@@ -150,3 +150,87 @@ def equivalent_clusters(site0,site1,symgroup,lattice):
 
     return equivsite0,equivsite1,mapsym
 
+def stack_tensor_basis(basis,constants):
+    """Add up the tensor basis into a matrix,
+    multiplying each element by the corresponding
+    force constant.
+    Only adds unique basis.
+
+    :basis: list of 2x2 matrix
+    :constants: list of float
+    :returns: 2x2 matrix
+
+    """
+    uniqueind=independent_indices(basis)
+
+    stacked=np.zeros((2,2))
+    stacked=np.asmatrix(stacked)
+
+    for ind in uniqueind:
+        stacked+=constants[ind]*basis[ind]
+
+    return stacked
+
+def dynamical_exp_elem(k,rn,tb0,tb1):
+    """Compute the exponential part of the dynamical
+    matrix.
+
+    exp(-ik(rn-tb0+tb1))
+
+    :k: 2x1 matrix (cart)
+    :rn: 2x1 matrix
+    :tb0: 2x1 matrix
+    :tb1: 2x1 matrix
+    :returns: complex
+
+    """
+    return math.exp(-k*1j*(rn-tb0+tb1))
+
+def connect_clusters(pivot,protosites,pgroup,lattice):
+    """Get all the clusters that can be connected to the
+    prototype sites, by making prototype pairs and applying
+    symmetry to each one.
+
+    :pivot: Site, shared by every pair
+    :protosites: Site, needed to make prototype pairs
+    :pgroup: list of Op
+    :lattice: 2x2 matrix with a and b vectors as columns
+    :returns: list of (Site,Site)
+
+    """
+    allpairs=[]
+    for site in protosites:
+        equiv0,equiv1,syms=equivalent_clusters(pivot,site,pgroup,lattice)
+        allpairs+=zip(equiv0,equiv1)
+
+    return allpairs
+
+
+def dynamical_basis_entries(protopairs,pgroup,lattice,constants):
+    """Compute the tensor basis parts of the dynamical
+    matrix, given a list of all the necessary prototype pairs.
+    The result is a list of 2x2 matrix which needs to be summed
+    in a particular manner.
+    There is no self interaction term!!
+
+    :protopairs: (Site,Site) 
+    :pgroup: list of Op
+    :lattice: 2x2 matrix with a and b vectors as columns
+    :constants: list of float (force values)
+    :returns: 2x2 matrix
+
+    """
+    allbasisstacks=[]
+    for site0,site1 in protopairs:
+        equiv0,equiv1,syms=equivalent_clusters(site0,site1,point_group,lattice)
+        tensorbasis=force_tensor_basis_for_pair(site0,site1,pgroup,lattice)
+
+        for eq0,eq1,op in zip(equiv0,equiv1,syms):
+            pair=(eq0,eq1)
+            newbasis=[op.apply(basis) for basis in tensorbasis]
+            newstack=stack_tensor_basis(newbasis,constants)
+
+            #There will be an entry for every cluster
+            allbasisstacks.append(newstack,pair)
+    pass
+
