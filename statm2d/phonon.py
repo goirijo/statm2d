@@ -47,6 +47,11 @@ def map_cluster(site0,site1,op,lattice):
     transsite0=site0.apply_symmetry(op)
     transsite1=site1.apply_symmetry(op)
 
+    #Mapping the clusters should keep the pivot in the same spot
+    clustshift,_=structure.site_delta(transsite0,site0)
+    transsite0._coord+=clustshift
+    transsite1._coord+=clustshift
+
     goodmap,mapswitch=is_equivalent_cluster(site0,site1,transsite0,transsite1,lattice)
     
     #if np.allclose(clusterdelta,transdelta):
