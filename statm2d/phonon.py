@@ -94,7 +94,7 @@ def cluster_subgroups(site0,site1,symgroup,lattice):
     return (subgroupmap,subgroupswitch)
 
 
-def force_tensor_basis_for_pair(site0,site1,symgroup,lattice):
+def tensor_basis_for_pair(site0,site1,symgroup,lattice):
     """For a particular pair of sites, determine the symmetrized
     tensor basis. For each tensor basis apply the Reynolds operator
     with operations that map the cluster onto itself. In addition,
@@ -115,6 +115,29 @@ def force_tensor_basis_for_pair(site0,site1,symgroup,lattice):
         extrasymmetrized=sym.matrix_reynolds(candidate.T,switchgroup)
         basiscandidates[idx]=(symmetrized+extrasymmetrized)/(len(mapgroup)+len(switchgroup))
     return basiscandidates
+
+def unique_force_tensor_basis_for_pair(site0,site1,symgroup,lattice,constants):
+    """For a particular pair of sites, determine the symmetrized
+    tensor basis. For each tensor basis apply the Reynolds operator
+    with operations that map the cluster onto itself. In addition,
+    apply the Reynolds operator to the transpose of the tensor basis
+    for operations that map sites of the cluster onto each other.
+    Return only the linearly independent entries, tupled with the corresponding
+    force constants.
+
+    :site0: Site
+    :site1: Site
+    :returns: list of (2x2 matrix,float)
+
+    """
+    basiscandidates=tensor_basis_for_pair(site0,site1,symgroup,lattice)
+    uniqueind=independent_indices(basiscandidates)
+
+    uniquebasis=[]
+    for ind in uniqueind:
+        uniquebasis.append((basiscandidates[ind],constants[ind]))
+
+    return uniquebasis
 
 def equivalent_clusters(site0,site1,symgroup,lattice):
     """Apply the given group of symmetry operations onto
@@ -150,26 +173,24 @@ def equivalent_clusters(site0,site1,symgroup,lattice):
 
     return equivsite0,equivsite1,mapsym
 
-def stack_tensor_basis(basis,constants):
+def flatten_tensor_stack(forcebasis):
     """Add up the tensor basis into a matrix,
     multiplying each element by the corresponding
-    force constant.
-    Only adds unique basis.
+    force constant. Expects only the unique
+    tensor basis, tupled with the force constants.
 
     :basis: list of 2x2 matrix
     :constants: list of float
     :returns: 2x2 matrix
 
     """
-    uniqueind=independent_indices(basis)
+    flattened=np.zeros((2,2))
+    flattened=np.asmatrix(flattened)
 
-    stacked=np.zeros((2,2))
-    stacked=np.asmatrix(stacked)
+    for basis,constant in forcebasis:
+        flattened+=constant*basis
 
-    for ind in uniqueind:
-        stacked+=constants[ind]*basis[ind]
-
-    return stacked
+    return flattened
 
 def dynamical_exp_elem(k,rn,tb0,tb1):
     """Compute the exponential part of the dynamical
@@ -205,32 +226,87 @@ def connect_clusters(pivot,protosites,pgroup,lattice):
 
     return allpairs
 
+def self_interactions(basisstacks):
+    """Find a new entry for the list of stacked tensor basis
+    by summing the values. Expects list of stacks that share the
+    same pivot, all corresponding to equivalent pair clusters.
+
+    :basisstacks: [ ( [(2x2 mat, float)] ,(Site,Site) ) ]
+    :returns: ([(2x2 mat, float)],(Site,Site))
+
+    """
+    zerosarr=np.zeros((2,2))
+
+    selfpair=basisstacks[0][1][0]
+    selfpair=(selfpair,selfpair)
+
+    selfterms=[]
+    for elem in basisstacks[0][0]:
+        selfterms.append(np.matrix.copy(zerosarr))
+
+    selfcoeffs=[c for basis,c in basisstacks[0][0]]
+
+
+    for forcestack,pair in basisstacks:
+        assert pair[0]==selfpair[0]
+
+        for ind,basisconst in enumerate(forcestack):
+            basis,const=basisconst
+            assert const==selfcoeffs[ind]
+
+            selfterms[ind]+=basis
+
+    return zip(selfterms,selfcoeffs),selfpair
 
 def dynamical_basis_entries(protopairs,pgroup,lattice,constants):
     """Compute the tensor basis parts of the dynamical
     matrix, given a list of all the necessary prototype pairs.
     The result is a list of 2x2 matrix which needs to be summed
-    in a particular manner.
-    There is no self interaction term!!
+    in a particular manner. 
 
-    :protopairs: (Site,Site) 
+    :protopairs: [(Site,Site)]
     :pgroup: list of Op
     :lattice: 2x2 matrix with a and b vectors as columns
     :constants: list of float (force values)
-    :returns: 2x2 matrix
+    :returns: [ ( [(2x2 mat, float)] ,(Site,Site) ) ]
 
     """
     allbasisstacks=[]
     for site0,site1 in protopairs:
-        equiv0,equiv1,syms=equivalent_clusters(site0,site1,point_group,lattice)
-        tensorbasis=force_tensor_basis_for_pair(site0,site1,pgroup,lattice)
+        equiv0,equiv1,syms=equivalent_clusters(site0,site1,pgroup,lattice)
+        tensorbasis=unique_force_tensor_basis_for_pair(site0,site1,pgroup,lattice,constants)
+
+        protostacks=[]
 
         for eq0,eq1,op in zip(equiv0,equiv1,syms):
+            print eq0
+            print eq1
             pair=(eq0,eq1)
-            newbasis=[op.apply(basis) for basis in tensorbasis]
-            newstack=stack_tensor_basis(newbasis,constants)
+            newbasis=[(op.apply(basis),const) for basis,const in tensorbasis]
 
             #There will be an entry for every cluster
-            allbasisstacks.append(newstack,pair)
-    pass
+            protostacks.append((newbasis,pair))
+        print "----------------------"
 
+        allbasisstacks.append(self_interactions(protostacks))
+        allbasisstacks+=protostacks
+
+    return allbasisstacks
+
+def dynamical_pair_locations(pairlist,struc):
+    """Run through the tensor basis entries of the dynamical
+    matrix, and determine where each flattened stack should
+    be added based on the basis sites of the corresponding
+    pairs.
+
+    :pairlist: [ (Site,Site) ]
+    :return: [(int,int)]
+
+    """
+    indexes=[]
+    for site0,site1 in pairlist:
+        indexes.append((struc.find(site0),struc.find(site1)))
+
+    return indexes
+
+    

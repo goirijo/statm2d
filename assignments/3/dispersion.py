@@ -10,11 +10,12 @@ b=np.matrix([[-0.5],[math.sqrt(3)/2]])
 coord1=np.matrix([0,0]).T
 coord2=(2*a+b)/3
 site1=sm2d.structure.Site(coord1,"A")
-site2=sm2d.structure.Site(coord2,"A")
+site2=sm2d.structure.Site(coord2,"B")
 
 triangluar=sm2d.Crystal(a,b,[site1],fracmode=False)
 honeycomb=sm2d.Crystal(a,b,[site1,site2],fracmode=False)
 pgroup=triangluar.point_group()
+
 
 pair0=sm2d.structure.Site(np.matrix([[0],[0]]),"A",triangluar._lattice,True)
 pair1=sm2d.structure.Site(np.matrix([[1],[0]]),"A",triangluar._lattice,True)
@@ -27,10 +28,26 @@ print pair0
 print pair1
 print ""
 
-equiv0,equiv1,syms=sm2d.phonon.equivalent_clusters(pair0,pair1,pgroup,triangluar._lattice)
+#equiv0,equiv1,syms=sm2d.phonon.equivalent_clusters(pair0,pair1,pgroup,triangluar._lattice)
 
 print "debug"
-sm2d.phonon.dynamical_basis(pivot,[pair1],pgroup,triangluar._lattice)
+protopairs=[(site1,site2),(site2,site1)]
+teststruc=honeycomb
+pg=teststruc.factor_group()
+dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,pg,teststruc._lattice,[-1,0,0,-2])
+for entry in dynbasisentries:
+    stack,pair=entry
+
+    for basis,const in stack:
+        print basis
+        print const
+        print "----------------"
+    for site in pair:
+        print site
+    print "-------------------------------------------------------------------"
+
+pairs=[p for stack,p in dynbasisentries]
+print sm2d.phonon.dynamical_pair_locations(pairs,honeycomb)
 exit()
 
 print "The symmetrically equivalent clusters are"
@@ -45,7 +62,7 @@ tensorbasis=sm2d.phonon.force_tensor_basis_for_pair(pair0,pair1,pgroup,trianglua
 uniqueind=sm2d.misc.independent_indices(tensorbasis)
 uniquetensorbasis=[tensorbasis[i] for i in uniqueind]
 
-coeffvals=[1,2,2,2]
+coeffvals=[-1,0,0,-2]
 coeffnames=["xx","xy","yx","yy"]
 uniquecoeffnames=[coeffnames[i] for i in uniqueind]
 uniquecoeffvals=[coeffvals[i] for i in uniqueind]

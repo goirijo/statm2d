@@ -148,7 +148,6 @@ class Site(object):
 
         """
         return Site(bring_within(self._coord,lattice),self._specie)
-        
 
     def __str__(self):
         coordstring="[%-*s,%s]" % (12,self._coord[0,0],self._coord[1,0])
@@ -371,6 +370,16 @@ class Crystal(object):
         
         return ax
         
+    def find(self, site):
+        """Get the index of the provided site
+        in terms of the basis
+
+        :site: Site
+        :returns: int
+
+        """
+        within=site.bring_within(self._lattice)
+        return self._basis.index(within)
 
     def __str__(self):
         representation="Lattice:\n"+self._lattice.__str__()
