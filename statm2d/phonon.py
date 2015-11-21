@@ -277,7 +277,7 @@ def self_interactions(basisstacks):
             basis,const=basisconst
             assert const==selfcoeffs[ind]
 
-            selfterms[ind]+=basis
+            selfterms[ind]-=basis
 
     return zip(selfterms,selfcoeffs),selfpair
 
@@ -357,6 +357,9 @@ def dynamical_matrix(struc,protopairs,fconstants,k):
 
         D[D_entry]+=sumvalue
 
+    D=np.asmatrix(D)
+    assert is_hermitian(D)
+
     return np.asmatrix(D)
 
 def ksegment(astar,bstar,startcoord,endcoord,density):
@@ -380,18 +383,18 @@ def ksegment(astar,bstar,startcoord,endcoord,density):
 
 def kpath(astar,bstar,sympoints,densities):
     """Find list of k-points along a given path, by connecting
-    the points.
+    the points. Returns each segment as a list entry
 
     :astar: 2x1 vector
     :bstar: 2x1 vector
     :sympoints: list 2x1 vector
     :densities: list of int
-    :returns: list of 2x1 vector 
+    :returns: [[2x1 vector]]
 
     """
     kpoints=[]
 
     for start,end,den in zip(sympoints,sympoints[1::]+sympoints[0:1],densities):
-        kpoints+=ksegment(astar,bstar,start,end,den)
+        kpoints.append(ksegment(astar,bstar,start,end,den))
 
     return kpoints

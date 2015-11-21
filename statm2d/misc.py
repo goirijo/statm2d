@@ -7,17 +7,25 @@ def is_close(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 def is_unitary(M):
-    """Well... kind of unitary. Checks if
-    M*M.T=I
+    """Returns true if M*M.H=I
 
     :M: 2x2 matrix
-    :returns: TODO
+    :returns: bool
 
     """
     I=np.identity(2)
-    uniproduct=M*M.T
+    uniproduct=M*M.H
 
     return np.allclose(uniproduct,I)
+
+def is_hermitian(M):
+    """Returns true if M=M.H
+
+    :M: 2x2 matrix
+    :returns: bool
+    """
+
+    return np.allclose(M,M.H)
 
 def vec_angle(vec1, vec2):
     """Calculate the angle in degrees between

@@ -29,7 +29,7 @@ print "debug"
 protopairs=[(site1,site2),(site2,site1)]
 teststruc=honeycomb
 sg=teststruc.factor_group()
-testconst=[-1,-2,-3,-4]
+testconst=[-3,-2,-3,-4]
 dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc._lattice,testconst)
 for stack,pair in dynbasisentries:
 
@@ -86,13 +86,17 @@ figk=plt.figure(1)
 axk=figk.add_subplot('111')
 axk.set_title(r"\bf{Honeycomb dispersion}")
 axk.set_xlabel(r"\bf{k}")
-axk.set_ylabel(r"$\omega$")
+axk.set_ylabel(r"$\omega^2$")
 for ind,k in enumerate(kpoints):
     D=sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,k)
     eigval,eigvec=np.linalg.eig(D) 
+
+    assert np.allclose(np.zeros(eigval.shape),eigval.imag)
+    eigval=eigval.real
 
     kcount=np.ones(eigval.shape)*ind
 
     axk.scatter(kcount,eigval)
 
+plt.tight_layout()
 plt.show()

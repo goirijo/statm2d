@@ -34,7 +34,7 @@ print "debug"
 protopairs=[(pair0,pair1)]
 teststruc=triangluar
 sg=teststruc.factor_group()
-testconst=[-1,-2,-3,-4]
+testconst=[-2,-200,-300,-5]
 dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc._lattice,testconst)
 for stack,pair in dynbasisentries:
 
@@ -78,20 +78,28 @@ vor=Voronoi(points)
 G=0*astar+0*bstar
 K=1.0/3*astar+1.0/3*bstar
 M=0.5*astar
-kpoints=sm2d.phonon.kpath(astar,bstar,[G,K,M],[30,10,20])
+kpoints=sm2d.phonon.kpath(astar,bstar,[G,K,M],[40,20,40])
 
 figk=plt.figure(1)
 axk=figk.add_subplot('111')
 axk.set_title(r"\bf{Triangluar dispersion}")
 axk.set_xlabel(r"\bf{k}")
-axk.set_ylabel(r"$\omega$")
-for ind,k in enumerate(kpoints):
-    D=sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,k)
-    eigval,eigvec=np.linalg.eig(D) 
+axk.set_ylabel(r"$\omega^2$")
 
-    kcount=np.ones(eigval.shape)*ind
+cummulation=0
+for segment in kpoints:
+    minstep=np.linalg.norm(segment[0]-segment[1])
+    print minstep
+    for k in segment:
+        D=sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,k)
+        eigval,eigvec=np.linalg.eig(D) 
+        print eigval
 
-    axk.scatter(kcount,eigval)
+        assert np.allclose(np.zeros(eigval.shape),eigval.imag)
+        eigval=eigval.real
+
+        cummulation+=minstep
+        axk.scatter(np.full(eigval.shape,cummulation),eigval)
 
 plt.show()
 
@@ -109,4 +117,5 @@ reciprocal.plot(ax,(-1,4),(-1,4))
 
 sm2d.misc.voronoi_plot(ax,vor)
 
+plt.tight_layout()
 plt.show()
