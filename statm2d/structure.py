@@ -39,17 +39,6 @@ def bring_within(coordinate,lattice):
     #Transform back into cartesian
     return lattice.dot(fracwithin)
 
-def _perpendicular_vector(a):
-    """Return a vector that is perpendicular to
-    the given one.
-
-    :a: 2x1 lattice vector
-    :returns: 2x1 vector
-
-    """
-    astar=np.matrix([[-a[1,0]],[a[0,0]]])
-    return astar
-
 def reciprocal_lattice(a,b):
     """Construct a reciprocal lattice from the given
     lattice vectors
@@ -59,14 +48,11 @@ def reciprocal_lattice(a,b):
     :returns: vector,vector
 
     """
-    #reciprocal a is perpendicular to b, and of length 1/a
-    astar=_perpendicular_vector(a)
-    astar=astar*norm(astar)
-    astar=astar*1/norm(b)
-    #reciprocal b is perpendicular to a, and of length 1/b
-    bstar=_perpendicular_vector(b)
-    bstar=bstar*norm(bstar)
-    bstar=bstar*1/norm(a)
+    real=np.hstack((a,b))
+    recip=2*math.pi*np.linalg.inv(real).T
+
+    astar=recip[:,0]
+    bstar=recip[:,1]
 
     return astar,bstar
 

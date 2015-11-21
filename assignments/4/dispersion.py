@@ -23,16 +23,11 @@ pair3=sm2d.structure.Site(np.matrix([[2],[0]]),"A",triangluar._lattice,True)
 pivot=pair0
 #pair1=site2
 
-print "The selected pair in the triangluar lattice is"
-print pair0
-print pair1
-print ""
-
 #equiv0,equiv1,syms=sm2d.phonon.equivalent_clusters(pair0,pair1,pgroup,triangluar._lattice)
 
 print "debug"
-protopairs=[(pair0,pair1)]
-teststruc=triangluar
+protopairs=[(site1,site2),(site2,site1)]
+teststruc=honeycomb
 sg=teststruc.factor_group()
 testconst=[-1,-2,-3,-4]
 dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc._lattice,testconst)
@@ -59,30 +54,37 @@ for ds,es in zip(dymlocs,expinputs):
         print e
     print "---"
 
-print sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,np.matrix([0,0.5]).T)
-
 
 print "The real lattice is"
-print a
-print b
+print np.array((a,b)).T
 print "The reciprocal lattice is"
 astar,bstar=sm2d.structure.reciprocal_lattice(a,b)
-print astar
-print bstar
+print np.array((astar,bstar)).T
 
 reciprocal=sm2d.Crystal(astar,bstar,[site1],fracmode=False)
 points=np.array(sm2d.structure.grid_points(astar,bstar,(-1,3),(-1,3)))
 vor=Voronoi(points)
 
-###################3
+fig=plt.figure(0)
+ax=fig.add_subplot('111')
+ax.set_title(r"\bf{Reciprocal triangular}")
+ax.set_xlabel(r"\bf{x}")
+ax.set_ylabel(r"\bf{y}")
+reciprocal.plot(ax,(-1,4),(-1,4))
+
+sm2d.misc.voronoi_plot(ax,vor)
+
 G=0*astar+0*bstar
 K=1.0/3*astar+1.0/3*bstar
 M=0.5*astar
+ax.scatter(G[0,0],G[1,0],color='r')
+ax.scatter(K[0,0],K[1,0],color='g')
+ax.scatter(M[0,0],M[1,0],color='y')
 kpoints=sm2d.phonon.kpath(astar,bstar,[G,K,M],[30,10,20])
 
 figk=plt.figure(1)
 axk=figk.add_subplot('111')
-axk.set_title(r"\bf{Triangluar dispersion}")
+axk.set_title(r"\bf{Honeycomb dispersion}")
 axk.set_xlabel(r"\bf{k}")
 axk.set_ylabel(r"$\omega$")
 for ind,k in enumerate(kpoints):
@@ -92,21 +94,5 @@ for ind,k in enumerate(kpoints):
     kcount=np.ones(eigval.shape)*ind
 
     axk.scatter(kcount,eigval)
-
-plt.show()
-
-exit()
-###################3
-
-
-
-fig=plt.figure()
-ax=fig.add_subplot('111')
-ax.set_title(r"\bf{Reciprocal triangular}")
-ax.set_xlabel(r"\bf{x}")
-ax.set_ylabel(r"\bf{y}")
-reciprocal.plot(ax,(-1,4),(-1,4))
-
-sm2d.misc.voronoi_plot(ax,vor)
 
 plt.show()

@@ -210,23 +210,41 @@ def dynamical_exp_elem(k,rn,tb0,tb1):
     :returns: complex
 
     """
-    return math.exp(-k*1j*(rn-tb0+tb1))
+    return cmath.exp(dot(-k*1j,(rn-tb0+tb1)))
 
-def connect_clusters(pivot,protosites,pgroup,lattice):
+def dynamical_exp_inputs(site0,site1,lattice):
+    """Determine rn, tb0 and tb1 needed
+    for the exponential term of the dynamical
+    matrix calculations for the given cluster.
+    Pivot always goes as first site.
+
+    :site0: Site
+    :site1: Site
+    :lattice: 2x2 matrix with a and b vectors as columns
+    :returns: (2x1 vector,2x1 vector, 2x1 vector)
+
+    """
+    rn,_=structure.site_delta(site0,site1)
+    tb0=structure.bring_within(site0._coord,lattice)
+    tb1=structure.bring_within(site1._coord,lattice)
+
+    return rn,tb0,tb1
+
+def connect_clusters(pivot,protosites,sgroup,lattice):
     """Get all the clusters that can be connected to the
     prototype sites, by making prototype pairs and applying
     symmetry to each one.
 
     :pivot: Site, shared by every pair
     :protosites: Site, needed to make prototype pairs
-    :pgroup: list of Op
+    :sgroup: list of Op
     :lattice: 2x2 matrix with a and b vectors as columns
     :returns: list of (Site,Site)
 
     """
     allpairs=[]
     for site in protosites:
-        equiv0,equiv1,syms=equivalent_clusters(pivot,site,pgroup,lattice)
+        equiv0,equiv1,syms=equivalent_clusters(pivot,site,sgroup,lattice)
         allpairs+=zip(equiv0,equiv1)
 
     return allpairs
@@ -263,14 +281,14 @@ def self_interactions(basisstacks):
 
     return zip(selfterms,selfcoeffs),selfpair
 
-def dynamical_basis_entries(protopairs,pgroup,lattice,constants):
+def dynamical_basis_entries(protopairs,sgroup,lattice,constants):
     """Compute the tensor basis parts of the dynamical
     matrix, given a list of all the necessary prototype pairs.
     The result is a list of 2x2 matrix which needs to be summed
     in a particular manner. 
 
     :protopairs: [(Site,Site)]
-    :pgroup: list of Op
+    :sgroup: list of Op
     :lattice: 2x2 matrix with a and b vectors as columns
     :constants: list of float (force values)
     :returns: [ ( [(2x2 mat, float)] ,(Site,Site) ) ]
@@ -278,40 +296,102 @@ def dynamical_basis_entries(protopairs,pgroup,lattice,constants):
     """
     allbasisstacks=[]
     for site0,site1 in protopairs:
-        equiv0,equiv1,syms=equivalent_clusters(site0,site1,pgroup,lattice)
-        tensorbasis=unique_force_tensor_basis_for_pair(site0,site1,pgroup,lattice,constants)
+        equiv0,equiv1,syms=equivalent_clusters(site0,site1,sgroup,lattice)
+        tensorbasis=unique_force_tensor_basis_for_pair(site0,site1,sgroup,lattice,constants)
 
         protostacks=[]
 
         for eq0,eq1,op in zip(equiv0,equiv1,syms):
-            print eq0
-            print eq1
             pair=(eq0,eq1)
             newbasis=[(op.apply(basis),const) for basis,const in tensorbasis]
 
             #There will be an entry for every cluster
             protostacks.append((newbasis,pair))
-        print "----------------------"
 
         allbasisstacks.append(self_interactions(protostacks))
         allbasisstacks+=protostacks
 
     return allbasisstacks
 
-def dynamical_pair_locations(pairlist,struc):
+def dynamical_pair_location(site0,site1,struc):
     """Run through the tensor basis entries of the dynamical
     matrix, and determine where each flattened stack should
     be added based on the basis sites of the corresponding
     pairs.
+    Pivot always goes first.
 
-    :pairlist: [ (Site,Site) ]
-    :return: [(int,int)]
+    :site0: Site
+    :site1: Site
+    :return: [(slice,slice)]
 
     """
-    indexes=[]
-    for site0,site1 in pairlist:
-        indexes.append((struc.find(site0),struc.find(site1)))
+    b0ind=struc.find(site0)
+    b1ind=struc.find(site1)
 
-    return indexes
+    return slice(2*b0ind,2*b0ind+2),slice(2*b1ind,2*b1ind+2)
 
-    
+def dynamical_matrix(struc,protopairs,fconstants,k):
+    """Calculate the dynamical matrix for a given k point.
+
+    :struc: Crystal
+    :protopairs: [(Site,Site)], (probably NN pairs)
+    :fconstants: list of 4 floats, for each xx,xy,yx,yy forces
+    :k: 2x1 matrix, k-point of interest
+    :returns: 2x2 matrix
+    """
+    D=np.zeros((2*len(struc._basis),2*len(struc._basis)),dtype=complex)
+
+    sg=struc.factor_group()
+    dynbasisentries=dynamical_basis_entries(protopairs,sg,struc._lattice,fconstants)
+
+    for stack,pair in dynbasisentries:
+        #This is the 2x2 sum of the tensor basis with the force constants
+        L=flatten_tensor_stack(stack)
+
+        #This is the exponential part
+        rn,tb0,tb1=dynamical_exp_inputs(pair[0],pair[1],struc._lattice)
+        expstuff=dynamical_exp_elem(k,rn,tb0,tb1)
+
+        sumvalue=L*expstuff
+        D_entry=dynamical_pair_location(pair[0],pair[1],struc)
+
+        D[D_entry]+=sumvalue
+
+    return np.asmatrix(D)
+
+def ksegment(astar,bstar,startcoord,endcoord,density):
+    """Get a list of kpoints between the given
+    coordinates in a particular density
+
+    :astar: 2x1 vector
+    :bstar: 2x1 vector
+    :startcoord: 2x1 vector
+    :endcoord: 2x1 vector
+    :density: list of int
+    :returns: list of 2x1 vector 
+
+    """
+    delta=endcoord-startcoord
+    increment=delta/density
+
+    segment=[i*increment+startcoord for i in range(density)]
+    return segment
+
+
+def kpath(astar,bstar,sympoints,densities):
+    """Find list of k-points along a given path, by connecting
+    the points.
+
+    :astar: 2x1 vector
+    :bstar: 2x1 vector
+    :sympoints: list 2x1 vector
+    :densities: list of int
+    :returns: list of 2x1 vector 
+
+    """
+    kpoints=[]
+
+    for start,end,den in zip(sympoints,sympoints[1::]+sympoints[0:1],densities):
+        kpoints+=ksegment(astar,bstar,start,end,den)
+
+    return kpoints

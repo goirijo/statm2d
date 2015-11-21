@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import cmath
 
 def is_close(a, b, rel_tol=1e-09, abs_tol=0.0):
     """Float errors are annoying"""
@@ -113,6 +114,17 @@ def norm(v):
 
     """
     return np.sqrt((v.T*v)[0,0])
+
+def dot(a,b):
+    """Dot product for matrix objects.
+    How is this a thing I need to write?
+
+    :a: 2x1 vector
+    :b: 2x1 vector
+    :returns: float
+
+    """
+    return np.sum(np.asarray(a)*np.asarray(b))
 
 def voronoi_plot(ax,vor):
     for simplex in vor.ridge_vertices:
