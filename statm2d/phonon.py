@@ -33,10 +33,39 @@ def is_equivalent_cluster(site0,site1,comp0,comp1,lattice):
 
     return goodmap,mapswitch 
 
-def map_cluster(site0,site1,op,lattice):
+def map_cluster(site0,site1,op):
+    """Apply symmetry operation on pair cluster,
+    using pivot as origin. No translations.
+
+    :site0: Site
+    :site1: Site
+    :op: Op
+    :returns: Site,Site
+
+    """
+    op.shift[...]=0
+    transsite0=site0.copy() #just in case
+
+    shift1=site1.copy()
+    shift1._coord=shift1._coord-site0._coord
+    transsite1=shift1.apply_symmetry(op)
+    transsite1._coord=transsite1._coord+site0._coord
+    #print "xxxxxxx"
+    #print site1
+    #print shift1
+    #print shift1._coord-site0._coord
+    #print op.name
+    #print transsite1
+    #print "xxxxxxxx"
+
+    return transsite0,transsite1
+
+
+def map_cluster_self(site0,site1,op,lattice):
     """Checks if the symmetry operation
     maps a cluster onto itself (with a lattice translation).
     If it does, check if the sites switched places.
+    Operation applied around pivot (site0), no translations.
 
     :site0: Site
     :site1: Site
@@ -44,13 +73,7 @@ def map_cluster(site0,site1,op,lattice):
     :returns: Site,Site,bool,bool
 
     """
-    transsite0=site0.apply_symmetry(op)
-    transsite1=site1.apply_symmetry(op)
-
-    #Mapping the clusters should keep the pivot in the same spot
-    clustshift,_=structure.site_delta(transsite0,site0)
-    transsite0._coord+=clustshift
-    transsite1._coord+=clustshift
+    transsite0,transsite1=map_cluster(site0,site1,op)
 
     goodmap,mapswitch=is_equivalent_cluster(site0,site1,transsite0,transsite1,lattice)
     
@@ -83,7 +106,7 @@ def cluster_subgroups(site0,site1,symgroup,lattice):
     subgroupswitch=[]
     
     for op in symgroup:
-        transsite0,transsite1,goodmap,mapswitch=map_cluster(site0,site1,op,lattice)
+        transsite0,transsite1,goodmap,mapswitch=map_cluster_self(site0,site1,op,lattice)
 
         #if the deltas remain the same, then the sites map onto themselves by translation
         if goodmap and not mapswitch:
@@ -144,7 +167,7 @@ def unique_force_tensor_basis_for_pair(site0,site1,symgroup,lattice,constants):
 
     return uniquebasis
 
-def equivalent_clusters(site0,site1,symgroup,lattice):
+def equivalent_clusters(site0,site1,symgroup,struc):
     """Apply the given group of symmetry operations onto
     the given pair cluster, and find new symmetrically
     equivalent clusters. Make list of resulting clusters
@@ -161,20 +184,23 @@ def equivalent_clusters(site0,site1,symgroup,lattice):
     mapsym=[]
 
     for op in symgroup:
-        transsite0,transsite1,goodmap,mapswitch=map_cluster(site0,site1,op,lattice)
+        transsite0,transsite1=map_cluster(site0,site1,op)
 
-        newclust=True
-        for eq0,eq1 in zip(equivsite0,equivsite1):
-            goodmap,mapswitch=is_equivalent_cluster(transsite0,transsite1,eq0,eq1,lattice)
-            #if goodmap:    Maybe translational equivalent ones should be discarded?
-            if goodmap and not mapswitch:
-                newclust=False
-                break
+        print "-----------------"
+        print site0
+        print site1
+        print op.name
+        print transsite0
+        print transsite1
+        print "-----------------"
 
-        if newclust:
+        if structure.is_valid(transsite1,struc):
             equivsite0.append(transsite0)
             equivsite1.append(transsite1)
             mapsym.append(op)
+
+        else:
+            continue
 
     return equivsite0,equivsite1,mapsym
 
@@ -230,24 +256,24 @@ def dynamical_exp_inputs(site0,site1,lattice):
 
     return rn,tb0,tb1
 
-def connect_clusters(pivot,protosites,sgroup,lattice):
-    """Get all the clusters that can be connected to the
-    prototype sites, by making prototype pairs and applying
-    symmetry to each one.
-
-    :pivot: Site, shared by every pair
-    :protosites: Site, needed to make prototype pairs
-    :sgroup: list of Op
-    :lattice: 2x2 matrix with a and b vectors as columns
-    :returns: list of (Site,Site)
-
-    """
-    allpairs=[]
-    for site in protosites:
-        equiv0,equiv1,syms=equivalent_clusters(pivot,site,sgroup,lattice)
-        allpairs+=zip(equiv0,equiv1)
-
-    return allpairs
+#def connect_clusters(pivot,protosites,sgroup,lattice):
+#    """Get all the clusters that can be connected to the
+#    prototype sites, by making prototype pairs and applying
+#    symmetry to each one.
+#
+#    :pivot: Site, shared by every pair
+#    :protosites: Site, needed to make prototype pairs
+#    :sgroup: list of Op
+#    :lattice: 2x2 matrix with a and b vectors as columns
+#    :returns: list of (Site,Site)
+#
+#    """
+#    allpairs=[]
+#    for site in protosites:
+#        equiv0,equiv1,syms=equivalent_clusters(pivot,site,sgroup,lattice)
+#        allpairs+=zip(equiv0,equiv1)
+#
+#    return allpairs
 
 def self_interactions(basisstacks):
     """Find a new entry for the list of stacked tensor basis
@@ -281,7 +307,7 @@ def self_interactions(basisstacks):
 
     return zip(selfterms,selfcoeffs),selfpair
 
-def dynamical_basis_entries(protopairs,sgroup,lattice,constants):
+def dynamical_basis_entries(protopairs,sgroup,struc,constants):
     """Compute the tensor basis parts of the dynamical
     matrix, given a list of all the necessary prototype pairs.
     The result is a list of 2x2 matrix which needs to be summed
@@ -296,8 +322,8 @@ def dynamical_basis_entries(protopairs,sgroup,lattice,constants):
     """
     allbasisstacks=[]
     for site0,site1 in protopairs:
-        equiv0,equiv1,syms=equivalent_clusters(site0,site1,sgroup,lattice)
-        tensorbasis=unique_force_tensor_basis_for_pair(site0,site1,sgroup,lattice,constants)
+        equiv0,equiv1,syms=equivalent_clusters(site0,site1,sgroup,struc)
+        tensorbasis=unique_force_tensor_basis_for_pair(site0,site1,sgroup,struc._lattice,constants)
 
         protostacks=[]
 
@@ -342,7 +368,7 @@ def dynamical_matrix(struc,protopairs,fconstants,k):
     D=np.zeros((2*len(struc._basis),2*len(struc._basis)),dtype=complex)
 
     sg=struc.factor_group()
-    dynbasisentries=dynamical_basis_entries(protopairs,sg,struc._lattice,fconstants)
+    dynbasisentries=dynamical_basis_entries(protopairs,sg,struc,fconstants)
 
     for stack,pair in dynbasisentries:
         #This is the 2x2 sum of the tensor basis with the force constants

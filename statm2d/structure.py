@@ -39,6 +39,13 @@ def bring_within(coordinate,lattice):
     #Transform back into cartesian
     return lattice.dot(fracwithin)
 
+def is_valid(testsite,struc):
+    """Check if the given site exists in the structure
+    :returns: bool
+
+    """
+    return testsite.bring_within(struc._lattice) in struc._basis
+
 def reciprocal_lattice(a,b):
     """Construct a reciprocal lattice from the given
     lattice vectors
@@ -113,6 +120,9 @@ class Site(object):
 
         else:
             self._coord=coord
+
+    def copy(self):
+        return Site(self._coord,self._specie,fracmode=False)
 
     def apply_symmetry(self, operation):
         """Apply a symmetry operation to the basis

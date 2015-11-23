@@ -35,7 +35,7 @@ protopairs=[(pair0,pair1)]
 teststruc=triangluar
 sg=teststruc.factor_group()
 testconst=[-2,-200,-300,-5]
-dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc._lattice,testconst)
+dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc,testconst)
 for stack,pair in dynbasisentries:
 
     for basis,const in stack:
@@ -78,7 +78,7 @@ vor=Voronoi(points)
 G=0*astar+0*bstar
 K=1.0/3*astar+1.0/3*bstar
 M=0.5*astar
-kpoints=sm2d.phonon.kpath(astar,bstar,[G,K,M],[40,20,40])
+kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[20,40,40])
 
 figk=plt.figure(1)
 axk=figk.add_subplot('111')

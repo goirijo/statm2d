@@ -30,7 +30,7 @@ protopairs=[(site1,site2),(site2,site1)]
 teststruc=honeycomb
 sg=teststruc.factor_group()
 testconst=[-3,-2,-3,-4]
-dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc._lattice,testconst)
+dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc,testconst)
 for stack,pair in dynbasisentries:
 
     for basis,const in stack:
@@ -87,16 +87,20 @@ axk=figk.add_subplot('111')
 axk.set_title(r"\bf{Honeycomb dispersion}")
 axk.set_xlabel(r"\bf{k}")
 axk.set_ylabel(r"$\omega^2$")
-for ind,k in enumerate(kpoints):
-    D=sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,k)
-    eigval,eigvec=np.linalg.eig(D) 
+cummulation=0
+for segment in kpoints:
+    minstep=np.linalg.norm(segment[0]-segment[1])
+    print minstep
+    for k in segment:
+        D=sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,k)
+        eigval,eigvec=np.linalg.eig(D) 
+        print eigval
 
-    assert np.allclose(np.zeros(eigval.shape),eigval.imag)
-    eigval=eigval.real
+        assert np.allclose(np.zeros(eigval.shape),eigval.imag)
+        eigval=eigval.real
 
-    kcount=np.ones(eigval.shape)*ind
-
-    axk.scatter(kcount,eigval)
+        cummulation+=minstep
+        axk.scatter(np.full(eigval.shape,cummulation),eigval)
 
 plt.tight_layout()
 plt.show()
