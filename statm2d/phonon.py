@@ -186,13 +186,13 @@ def equivalent_clusters(site0,site1,symgroup,struc):
     for op in symgroup:
         transsite0,transsite1=map_cluster(site0,site1,op)
 
-        print "-----------------"
-        print site0
-        print site1
-        print op.name
-        print transsite0
-        print transsite1
-        print "-----------------"
+        #print "-----------------"
+        #print site0
+        #print site1
+        #print op.name
+        #print transsite0
+        #print transsite1
+        #print "-----------------"
 
         if structure.is_valid(transsite1,struc):
             equivsite0.append(transsite0)

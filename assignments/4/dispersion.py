@@ -10,7 +10,7 @@ b=np.matrix([[-0.5],[math.sqrt(3)/2]])
 coord1=np.matrix([0,0]).T
 coord2=(2*a+b)/3
 site1=sm2d.structure.Site(coord1,"A")
-site2=sm2d.structure.Site(coord2,"B")
+site2=sm2d.structure.Site(coord2,"A")
 
 triangluar=sm2d.Crystal(a,b,[site1],fracmode=False)
 honeycomb=sm2d.Crystal(a,b,[site1,site2],fracmode=False)
@@ -29,7 +29,7 @@ print "debug"
 protopairs=[(site1,site2),(site2,site1)]
 teststruc=honeycomb
 sg=teststruc.factor_group()
-testconst=[-3,-2,-3,-4]
+testconst=[-2,-1,-5,-3]
 dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc,testconst)
 for stack,pair in dynbasisentries:
 
