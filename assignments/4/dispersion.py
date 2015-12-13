@@ -29,7 +29,7 @@ print "debug"
 protopairs=[(site1,site2),(site2,site1)]
 teststruc=honeycomb
 sg=teststruc.factor_group()
-testconst=[-2,-1,-5,-3]
+testconst=[-5,-2,-0.5,-3]
 dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc,testconst)
 for stack,pair in dynbasisentries:
 
@@ -80,7 +80,7 @@ M=0.5*astar
 ax.scatter(G[0,0],G[1,0],color='r')
 ax.scatter(K[0,0],K[1,0],color='g')
 ax.scatter(M[0,0],M[1,0],color='y')
-kpoints=sm2d.phonon.kpath(astar,bstar,[G,K,M],[30,10,20])
+kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[30,30,30])
 
 figk=plt.figure(1)
 axk=figk.add_subplot('111')
@@ -90,11 +90,14 @@ axk.set_ylabel(r"$\omega^2$")
 cummulation=0
 for segment in kpoints:
     minstep=np.linalg.norm(segment[0]-segment[1])
-    print minstep
     for k in segment:
         D=sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,k)
         eigval,eigvec=np.linalg.eig(D) 
-        print eigval
+
+        print "Eigenvector:"
+        print len(eigvec)
+        for vec in eigvec:
+            print vec.shape
 
         assert np.allclose(np.zeros(eigval.shape),eigval.imag)
         eigval=eigval.real

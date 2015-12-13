@@ -194,6 +194,10 @@ def equivalent_clusters(site0,site1,symgroup,struc):
         #print transsite1
         #print "-----------------"
 
+        #Don't repeat clusters
+        if transsite1 in equivsite1:
+            continue
+        
         if structure.is_valid(transsite1,struc):
             equivsite0.append(transsite0)
             equivsite1.append(transsite1)
@@ -201,6 +205,7 @@ def equivalent_clusters(site0,site1,symgroup,struc):
 
         else:
             continue
+
 
     return equivsite0,equivsite1,mapsym
 
@@ -250,7 +255,14 @@ def dynamical_exp_inputs(site0,site1,lattice):
     :returns: (2x1 vector,2x1 vector, 2x1 vector)
 
     """
+    sw0=site0.bring_within(lattice)
+    sw1=site1.bring_within(lattice)
     rn,_=structure.site_delta(site0,site1)
+    ##Erm... not sure which one the real rn is...
+    #l0,_=structure.site_delta(sw0,site0)
+    #l1,_=structure.site_delta(sw1,site1)
+    #rn=l1-l0
+
     tb0=structure.bring_within(site0._coord,lattice)
     tb1=structure.bring_within(site1._coord,lattice)
 
