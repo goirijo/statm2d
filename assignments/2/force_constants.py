@@ -45,7 +45,7 @@ for op in subswitch:
     print op
     print ""
 
-tensorbasis=sm2d.phonon.force_tensor_basis_for_pair(pair0,pair1,pgroup,triangluar._lattice)
+tensorbasis=sm2d.phonon.tensor_basis_for_pair(pair0,pair1,pgroup,triangluar._lattice)
 
 print "The invariant tensor basis is:"
 for basis in tensorbasis:
@@ -88,7 +88,7 @@ for op in subswitch:
     print op
     print ""
 
-tensorbasis=sm2d.phonon.force_tensor_basis_for_pair(pair0,pair1,pgroup,honeycomb._lattice)
+tensorbasis=sm2d.phonon.tensor_basis_for_pair(pair0,pair1,pgroup,honeycomb._lattice)
 
 print "The invariant tensor basis is:"
 for basis in tensorbasis:

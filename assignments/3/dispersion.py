@@ -36,31 +36,10 @@ teststruc=triangluar
 sg=teststruc.factor_group()
 testconst=[-2,-200,-300,-5]
 dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc,testconst)
-for stack,pair in dynbasisentries:
-
-    for basis,const in stack:
-        print basis
-        print const
-        print "----------------"
-    print "----------------"
-    print sm2d.phonon.flatten_tensor_stack(stack)
-    print "----------------"
-    for site in pair:
-        print site
-    print "-------------------------------------------------------------------"
 
 pairs=[p for stack,p in dynbasisentries]
 dymlocs=[sm2d.phonon.dynamical_pair_location(s0,s1,teststruc) for s0,s1 in pairs]
 expinputs=[sm2d.phonon.dynamical_exp_inputs(s0,s1,teststruc._lattice) for s0,s1 in pairs]
-
-for ds,es in zip(dymlocs,expinputs):
-    print ds
-    for e in es:
-        print e
-    print "---"
-
-print sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,np.matrix([0,0.5]).T)
-
 
 print "The real lattice is"
 print a
@@ -78,16 +57,18 @@ vor=Voronoi(points)
 G=0*astar+0*bstar
 K=1.0/3*astar+1.0/3*bstar
 M=0.5*astar
-kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[20,40,40])
+kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[60,60,20])
 
 figk=plt.figure(1)
 axk=figk.add_subplot('111')
 axk.set_title(r"\bf{Triangluar dispersion}")
 axk.set_xlabel(r"\bf{k}")
-axk.set_ylabel(r"$\omega^2$")
+axk.set_ylabel(r"$\omega$")
 
 cummulation=0
+symticks=[]
 for segment in kpoints:
+    symticks.append(cummulation)
     minstep=np.linalg.norm(segment[0]-segment[1])
     print minstep
     for k in segment:
@@ -99,7 +80,11 @@ for segment in kpoints:
         eigval=eigval.real
 
         cummulation+=minstep
-        axk.scatter(np.full(eigval.shape,cummulation),eigval)
+        axk.scatter(np.full(eigval.shape,cummulation),np.sqrt(eigval))
+symticks.append(cummulation)
+
+axk.set_xticks(symticks)
+axk.set_xticklabels([r"\textbf{K}",r"$\Gamma$",r"\textbf{M}",r"\textbf{K}"])
 
 plt.show()
 

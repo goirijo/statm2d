@@ -25,34 +25,15 @@ pivot=pair0
 
 #equiv0,equiv1,syms=sm2d.phonon.equivalent_clusters(pair0,pair1,pgroup,triangluar._lattice)
 
-print "debug"
 protopairs=[(site1,site2),(site2,site1)]
 teststruc=honeycomb
 sg=teststruc.factor_group()
 testconst=[-5,-2,-0.5,-3]
 dynbasisentries=sm2d.phonon.dynamical_basis_entries(protopairs,sg,teststruc,testconst)
-for stack,pair in dynbasisentries:
-
-    for basis,const in stack:
-        print basis
-        print const
-        print "----------------"
-    print "----------------"
-    print sm2d.phonon.flatten_tensor_stack(stack)
-    print "----------------"
-    for site in pair:
-        print site
-    print "-------------------------------------------------------------------"
 
 pairs=[p for stack,p in dynbasisentries]
 dymlocs=[sm2d.phonon.dynamical_pair_location(s0,s1,teststruc) for s0,s1 in pairs]
 expinputs=[sm2d.phonon.dynamical_exp_inputs(s0,s1,teststruc._lattice) for s0,s1 in pairs]
-
-for ds,es in zip(dymlocs,expinputs):
-    print ds
-    for e in es:
-        print e
-    print "---"
 
 
 print "The real lattice is"
@@ -86,24 +67,27 @@ figk=plt.figure(1)
 axk=figk.add_subplot('111')
 axk.set_title(r"\bf{Honeycomb dispersion}")
 axk.set_xlabel(r"\bf{k}")
-axk.set_ylabel(r"$\omega^2$")
+axk.set_ylabel(r"$\omega$")
+
+symticks=[]
 cummulation=0
 for segment in kpoints:
+    symticks.append(cummulation)
     minstep=np.linalg.norm(segment[0]-segment[1])
     for k in segment:
         D=sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,k)
         eigval,eigvec=np.linalg.eig(D) 
-
-        print "Eigenvector:"
-        print len(eigvec)
-        for vec in eigvec:
-            print vec.shape
+        print eigval
 
         assert np.allclose(np.zeros(eigval.shape),eigval.imag)
         eigval=eigval.real
 
         cummulation+=minstep
-        axk.scatter(np.full(eigval.shape,cummulation),eigval)
+        axk.scatter(np.full(eigval.shape,cummulation),np.sqrt(eigval))
+symticks.append(cummulation)
+
+axk.set_xticks(symticks)
+axk.set_xticklabels([r"\textbf{K}",r"$\Gamma$",r"\textbf{M}",r"\textbf{K}"])
 
 plt.tight_layout()
 plt.show()

@@ -50,13 +50,6 @@ def map_cluster(site0,site1,op):
     shift1._coord=shift1._coord-site0._coord
     transsite1=shift1.apply_symmetry(op)
     transsite1._coord=transsite1._coord+site0._coord
-    #print "xxxxxxx"
-    #print site1
-    #print shift1
-    #print shift1._coord-site0._coord
-    #print op.name
-    #print transsite1
-    #print "xxxxxxxx"
 
     return transsite0,transsite1
 
@@ -185,14 +178,6 @@ def equivalent_clusters(site0,site1,symgroup,struc):
 
     for op in symgroup:
         transsite0,transsite1=map_cluster(site0,site1,op)
-
-        #print "-----------------"
-        #print site0
-        #print site1
-        #print op.name
-        #print transsite0
-        #print transsite1
-        #print "-----------------"
 
         #Don't repeat clusters
         if transsite1 in equivsite1:
@@ -345,6 +330,7 @@ def dynamical_basis_entries(protopairs,sgroup,struc,constants):
 
             #There will be an entry for every cluster
             protostacks.append((newbasis,pair))
+
 
         allbasisstacks.append(self_interactions(protostacks))
         allbasisstacks+=protostacks
