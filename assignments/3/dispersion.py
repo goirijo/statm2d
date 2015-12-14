@@ -1,6 +1,8 @@
 import statm2d as sm2d
 import numpy as np
 import math
+import cmath
+from statm2d.misc import *
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
@@ -58,6 +60,7 @@ G=0*astar+0*bstar
 K=1.0/3*astar+1.0/3*bstar
 M=0.5*astar
 kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[60,60,20])
+kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[2,2,2])
 
 figk=plt.figure(1)
 axk=figk.add_subplot('111')
@@ -88,10 +91,7 @@ axk.set_xticklabels([r"\textbf{K}",r"$\Gamma$",r"\textbf{M}",r"\textbf{K}"])
 
 plt.show()
 
-exit()
 ###################3
-
-
 
 fig=plt.figure()
 ax=fig.add_subplot('111')
@@ -101,6 +101,56 @@ ax.set_ylabel(r"\bf{y}")
 reciprocal.plot(ax,(-1,4),(-1,4))
 
 sm2d.misc.voronoi_plot(ax,vor)
+
+###################4
+
+print "The displacement k-vector (M) is"
+K=M
+print K
+
+print "The dynamical matrix at this point is"
+D=sm2d.phonon.dynamical_matrix(teststruc,protopairs,testconst,K)
+print D
+
+print "The eigenvalue and eigenvectors at this point are"
+eigvals,eigvecs=np.linalg.eig(D)
+for val,vec in zip(eigval,eigvec):
+    print val
+    print vec
+    print "--"
+
+b1=np.squeeze(np.asarray(coord1))
+
+arange=(-1,3)
+brange=(-1,3)
+
+#Since there are multiple modes, we activate them each one at a time
+for idx,eigvec in enumerate(eigvecs):
+    #The eigenvectors corresponds to the single basis atom
+    figd=plt.figure(2+idx)
+    axd=figd.add_subplot('111')
+    axd=triangluar.plot(axd,arange,brange,supressvec=True)
+    axd.set_title(r"\bf{Displacement field at M ("+str(idx+1)+"/2)}")
+    axd.set_xlabel(r"\bf{x}")
+    axd.set_ylabel(r"\bf{y}")
+    evec1=np.squeeze(np.asarray(eigvec))[0:2]
+
+    #This is the most horrendous way to go about it, but I don't give a shit anymore
+    x=[]
+    y=[]
+    u=[]
+    v=[]
+    for lp in honeycomb.lattice_points_in_range(arange,brange):
+        lp=np.squeeze(np.asarray(lp))
+        v1=evec1*cmath.exp(dot(K*1j,(lp+b1)))
+        #There's no time to sum over the star of the k-point, so we'll just take the real part of the displacement
+        v1=np.real(v1)
+
+        x.append((lp+b1)[0])
+        y.append((lp+b1)[1])
+        u.append(v1[0])
+        v.append(v1[1])
+    axd.quiver(x,y,u,v)
 
 plt.tight_layout()
 plt.show()

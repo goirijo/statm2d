@@ -306,7 +306,7 @@ class Crystal(object):
 
         return fgroup
 
-    def plot(self, ax, arepeat, brepeat,colorshift=0):
+    def plot(self, ax, arepeat, brepeat,colorshift=0,supressvec=False):
         """Visualize structure by scattering
         basis on a plot. Specify how far to
         repeat the unit cell.
@@ -361,10 +361,31 @@ class Crystal(object):
 
         ax.set_aspect("equal")
         
-        ax.add_patch(patches.FancyArrow(0,0,axval,ayval,length_includes_head=True,width=0.005,color="black"))
-        ax.add_patch(patches.FancyArrow(0,0,bxval,byval,length_includes_head=True,width=0.005,color="black"))
+        if not supressvec:
+            ax.add_patch(patches.FancyArrow(0,0,axval,ayval,length_includes_head=True,width=0.005,color="black"))
+            ax.add_patch(patches.FancyArrow(0,0,bxval,byval,length_includes_head=True,width=0.005,color="black"))
         
         return ax
+    
+    def lattice_points_in_range(self, arange, brange):
+        """Create a grid of lattice points in the given range.
+
+        :arange: (int,int)
+        :brange: (int,int)
+        :returns: list of 2x1
+
+        """
+        avec=self.a()
+        bvec=self.b()
+
+        latpoints=[]
+        for a in np.arange(arange[0],arange[1]):
+            for b in np.arange(brange[0],brange[1]):
+                coords=a*avec+b*bvec
+                latpoints.append(coords)
+
+        return latpoints
+
         
     def find(self, site):
         """Get the index of the provided site
