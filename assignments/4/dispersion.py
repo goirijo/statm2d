@@ -52,8 +52,12 @@ M=0.5*astar
 ax.scatter(G[0,0],G[1,0],color='r')
 ax.scatter(K[0,0],K[1,0],color='g')
 ax.scatter(M[0,0],M[1,0],color='y')
-#kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[30,30,30])
-kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[2,2,2])
+kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[30,30,30])
+#kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[2,2,2])
+
+plt.tight_layout()
+fig.savefig("reciprocal.eps")
+
 
 figk=plt.figure(1)
 axk=figk.add_subplot('111')
@@ -80,6 +84,9 @@ symticks.append(cummulation)
 
 axk.set_xticks(symticks)
 axk.set_xticklabels([r"\textbf{K}",r"$\Gamma$",r"\textbf{M}",r"\textbf{K}"])
+
+plt.tight_layout()
+figk.savefig("./frequencies.eps")
 
 
 print "The displacement k-vector (M) is"
@@ -156,6 +163,6 @@ for idx,eigvec in enumerate(eigvecs):
         u.append(v1[0])
         v.append(v1[1])
     axd.quiver(x,y,u,v)
+    plt.tight_layout()
+    figd.savefig("displacement"+str(idx)+".eps")
 
-plt.tight_layout()
-plt.show()

@@ -60,9 +60,8 @@ G=0*astar+0*bstar
 K=1.0/3*astar+1.0/3*bstar
 M=0.5*astar
 kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[60,60,20])
-kpoints=sm2d.phonon.kpath(astar,bstar,[K,G,M],[2,2,2])
 
-figk=plt.figure(1)
+figk=plt.figure(0)
 axk=figk.add_subplot('111')
 axk.set_title(r"\bf{Triangluar dispersion}")
 axk.set_xlabel(r"\bf{k}")
@@ -89,11 +88,13 @@ symticks.append(cummulation)
 axk.set_xticks(symticks)
 axk.set_xticklabels([r"\textbf{K}",r"$\Gamma$",r"\textbf{M}",r"\textbf{K}"])
 
-plt.show()
+plt.tight_layout()
+figk.savefig("./frequencies.eps")
+
 
 ###################3
 
-fig=plt.figure()
+fig=plt.figure(1)
 ax=fig.add_subplot('111')
 ax.set_title(r"\bf{Reciprocal triangular}")
 ax.set_xlabel(r"\bf{x}")
@@ -101,6 +102,9 @@ ax.set_ylabel(r"\bf{y}")
 reciprocal.plot(ax,(-1,4),(-1,4))
 
 sm2d.misc.voronoi_plot(ax,vor)
+
+plt.tight_layout()
+fig.savefig("reciprocal.eps")
 
 ###################4
 
@@ -151,6 +155,6 @@ for idx,eigvec in enumerate(eigvecs):
         u.append(v1[0])
         v.append(v1[1])
     axd.quiver(x,y,u,v)
+    plt.tight_layout()
+    figd.savefig("displacement"+str(idx)+".eps")
 
-plt.tight_layout()
-plt.show()
