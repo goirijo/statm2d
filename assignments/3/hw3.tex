@@ -1,0 +1,75 @@
+\author{John Goiri}
+\date{\today}
+
+
+\documentclass[12pt, fleqn]{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{sidecap}
+\usepackage{multicol}
+\usepackage[small]{caption}
+\usepackage{amsfonts}
+\usepackage{breqn}
+\usepackage{amssymb}
+\usepackage[export]{adjustbox}
+\usepackage{cleveref}
+
+\renewcommand{\thesubsection}{\thesection.\alph{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\alph{subsubsection}}
+\begin{document}
+
+\section{Dynamical Matrix}
+The functions written to generate the tensor basis for homework 2 have been integrated into new routines to calculate the
+dynamical matrix for an arbitrary 2 dimensional structure as a function of force constants and k-vectors.
+The calculated dynamical matrix is implemented in the following questions to generate the required dispersion curves
+and displacement fields.
+
+\section{Reciprocal Lattice}
+The reciprocal lattice for the triangular lattice is shown in \cref{fig:reciprocal}. The vectors for the reciprocal lattice
+are perpendicular to the realspace vectors and were computed in one step with
+\begin{equation}
+    \mathbf{L^\star}=2\pi \left( \mathbf{L}^{-1} \right)^{\intercal}
+    \label{recip}
+\end{equation}
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=\textwidth]{./reciprocal.eps}
+    \end{center}
+    \caption{Reciprocal lattice of triangular lattice}
+    \label{fig:reciprocal}
+\end{figure}
+
+\section{Dispersion curves}
+The dynamical matrix and corresponding eigenvalues and eigenvectors were calculated numerically.
+A high symmetry path in reciprocal space was traced out to get the values of frequencies at various k-points using arbitrarily selected force constants.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=\textwidth]{./frequencies.eps}
+    \end{center}
+    \caption{Dispersion curves for triangular lattice following a high symmetry path in reciprocal space}
+    \label{fig:dispersion}
+\end{figure}
+
+\section{Displacement fields}
+Using the eigenvectors at the high symmetry k-point $\mathbf{M}$, two displacement fields can be generated for the triangular lattice.
+Each displacement field corresponds to the activation of a single frequency at $\mathbf{M}$.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=\textwidth]{./displacement0.eps}
+    \end{center}
+    \caption{First displacement field at $\mathbf{M}$}
+    \label{fig:disp0}
+\end{figure}
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=\textwidth]{./displacement1.eps}
+    \end{center}
+    \caption{Second displacement field at $\mathbf{M}$}
+    \label{fig:disp1}
+\end{figure}
+
+\end{document}
