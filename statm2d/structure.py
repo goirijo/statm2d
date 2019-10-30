@@ -342,7 +342,7 @@ class Crystal(object):
                 for atom in self._basis:
                     colorindex=atomtypes.index(atom._specie)
                     coords=atom._coord+acount*a+bcount*b
-                    ax.scatter(coords[0],coords[1],s=30,color=colorbook[colorindex+colorshift])
+                    ax.scatter([coords[0]],[coords[1]],s=30,color=colorbook[colorindex+colorshift])
                     
                 #plot dashed lines that extend the a vector, but only once
                 if acount==(arepeat[1]-1):
